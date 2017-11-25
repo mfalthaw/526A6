@@ -18,22 +18,38 @@ class Bot():
         self.irc_socket = None
         self.nick = 'spyBot'
     
+    def __send_to_channel(self, msg):
+        '''
+        send message to bot's channel
+        format PRIVMSG <#channel> :<message>
+        '''
+        self.__send_message('PRIVMSG #' + self.channel + ' :' + msg + '\n')
+    
+    def __send_to_user(self, msg, nick):
+        '''
+        send message to specific user
+        format PRIVMSG <nick> :<message>
+        '''
+        self.__send_message('PRIVMSG ' + nick + ' :' + msg + '\n')
+
     def __send_message(self, msg):
+        '''
+        send any message to irc server
+        '''
         self.irc_socket.send(msg.encode('utf-8'))
     
     def __connect_to_irc_server(self):
         '''
         connect to IRC server
         '''
-        log('Connecting to: {}:{}'.format(self.hostname, int(self.port)))
+        log('Connecting to: {}:{}'.format(self.hostname, self.port))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
-                self.irc_socket.connect((self.hostname, int(self.port)))
+                self.irc_socket.connect((self.hostname, self.port))
             except:
-                log('Diconnected from: {}:{}'.format(self.hostname, int(self.port)))
+                log('Diconnected from: {}:{}'.format(self.hostname, self.port))
             break
-        self.__authenticate()
     
     def __authenticate(self):
         self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ' :\n')
@@ -41,7 +57,7 @@ class Bot():
         # PRIVMSG <#channel>|<nick> :<message>
         # self.__send_message('PRIVMSG nickserv :iNOOPE\r\n')
         self.__send_message('JOIN #' + self.channel + '\n')
-        self.__send_message('PRIVMSG hi from spybot01!')
+        self.__send_to_channel('hi')
 
     def start_bot(self):
         '''
@@ -49,6 +65,7 @@ class Bot():
         source: https://stackoverflow.com/questions/2968408
         '''
         self.__connect_to_irc_server()
+        self.__authenticate()
 
 
 
