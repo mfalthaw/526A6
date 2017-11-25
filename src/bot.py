@@ -18,7 +18,7 @@ class Bot():
         self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
-        self.nick = 'spyBot'
+        self.nickname = 'spyBot'
     
     def __send_to_channel(self, msg):
         '''
@@ -27,12 +27,12 @@ class Bot():
         '''
         self.__send_message('PRIVMSG ' + self.channel + ' :' + msg + '\n')
     
-    def __send_to_user(self, msg, nick):
+    def __send_to_user(self, msg, nickname):
         '''
         send message to specific user
-        format PRIVMSG <nick> :<message>
+        format PRIVMSG <nickname> :<message>
         '''
-        self.__send_message('PRIVMSG ' + nick + ' :' + msg + '\n')
+        self.__send_message('PRIVMSG ' + nickname + ' :' + msg + '\n')
 
     def __send_message(self, msg):
         '''
@@ -66,8 +66,8 @@ class Bot():
             break
     
     def __authenticate(self):
-        self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ' :\n')
-        self.__send_message('NICK ' + self.nick + '\n')
+        self.__send_message('USER ' + self.nickname + ' ' + self.nickname + ' ' + self.nickname + ' :\n')
+        self.__send_message('NICK ' + self.nickname + '\n')
         self.__send_message('JOIN ' + self.channel + '\n')
     
     def __validate_msg(self, msg):
@@ -89,6 +89,25 @@ class Bot():
     def __handle_command(self, msg):
         _, msg = msg.split(' :')
         _, cmd = msg.split(' ')
+        
+        if cmd.startswith('status'):
+            self.__send_to_channel(self.nickname)
+        
+        elif cmd.startswith('quit'):
+            raise NotImplementedError()
+        
+        elif cmd.startswith('shutdown'):
+            raise NotImplementedError()
+        
+        elif cmd.startswith('attack'):
+            raise NotImplementedError()
+        
+        elif cmd.startswith('move'):
+            raise NotImplementedError()
+        
+        else:
+            raise ValueError('Invalid command!')
+
 
     def __listen(self):
         '''
@@ -96,14 +115,15 @@ class Bot():
         '''
         while True:
             msg = self.__receive_message()
+            if self.secret_phrase not in msg:
+                continue
             log(msg)
             if not self.__validate_msg(msg):
                 log('Warning: invalid msg --> {}'.format(msg))
-            
             try:
                 self.__handle_command(msg)
-            except:
-                log('exception!')
+            except ValueError as e:
+                log('Error: {}'.format(e))
 
     def start_bot(self):
         '''
