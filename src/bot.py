@@ -3,6 +3,7 @@
 
 import argparse
 import sys
+import socket
 
 # globals
 DEBUG = True
@@ -14,6 +15,32 @@ class Bot():
         self.port = port
         self.channel = channel
         self.secret_phrase = secret_phrase
+        self.irc_socket = None
+        self.nick = None
+    
+    def __send_message(self, msg):
+        self.irc_socket.send(msg.encode('utf-8'))
+
+    def start_bot(self):
+        '''
+        connect to IRC server and start bot
+        source: https://stackoverflow.com/questions/2968408
+        '''
+        # connect to IRC server
+        log('Connecting to: {}:{}'.format(self.hostname, int(self.port)))
+        self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while True:
+            try:
+                self.irc_socket.connect((self.hostname, int(self.port)))
+            except:
+                log('Diconnected from: {}:{}'.format(self.hostname, int(self.port)))
+            break
+        
+        self.nick = 'spyBot'
+        self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ':This is a fun bot!\n')
+        self.__send_message('NICK ' + self.nick + '\n')
+        # self.__send_message('PRIVMSG nickserv :iNOOPE\r\n')
+        self.__send_message('JOIN #' + self.channel + '\n')
 
 
 def parse_args():
@@ -28,7 +55,7 @@ def parse_args():
     parser.add_argument(
         'hostname',
         type=str,
-        help='The <hostname> specifies the IRC server\’s hostname.'
+        help='The <hostname> specifies the IRC server\'s hostname.'
     )
     parser.add_argument(
         'port',
@@ -59,7 +86,16 @@ def log(msg):
         print(msg, file=sys.stderr)
 
 def main():
-    args = parse_args()        
+    args = parse_args()
+    
+    # connect to IRC server
+    log('Connecting to: {}:{}'.format(args.hostname, int(args.port)))
+    conn = socket.socket()
+    conn.connect((args.hostname, int(args.port)))
+
+    # start bot
+    bot = Bot(args.hostname, int(args.port), args.channel, args.secret_phrase)
+    bot.start_bot()
     
 
 if __name__ == '__main__':
