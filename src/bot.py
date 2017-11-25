@@ -8,6 +8,7 @@ import socket
 # globals
 DEBUG = True
 BUFFER_SIZE = 2040
+CMDS = ['status', 'attack', 'move', 'quit', 'shutdown']
 
 class Bot():
     def __init__(self, hostname, port, channel, secret_phrase):
@@ -45,8 +46,8 @@ class Bot():
         connection alive by responding to 'PING #' with 'PONG #'
         and finally returns message
         '''
-        received_msg = self.irc_socket.recv(BUFFER_SIZE)
-        if received_msg.decode().find('PING') != -1:
+        received_msg = self.irc_socket.recv(BUFFER_SIZE).decode()
+        if received_msg.find('PING') != -1:
             self.__send_message('PONG ' + received_msg.split() [1] + '\r\n')
 
         return received_msg
@@ -69,11 +70,34 @@ class Bot():
         self.__send_message('NICK ' + self.nick + '\n')
         self.__send_message('JOIN ' + self.channel + '\n')
     
+    def __validate_msg(self, msg):
+        '''
+        format: <sender garbage> :<msg>
+        <msg>: secret_phrase command args
+        '''
+        if not ('PRIVMSG' in msg) or not (self.channel in msg):
+            return False
+        
+        _, msg = msg.split(' :')
+        secret, cmd = msg.split(' ')
+
+        if secret != self.secret_phrase:
+            return False
+        
+        # validate commands
+       
+        return True
+
     def __listen(self):
         '''
         listens for commands from IRC server
         '''
-
+        while True:
+            msg = self.__receive_message()
+            log(msg)
+            self.__validate_msg(msg)
+            # if ('PRIVMSG' in msg) and (self.channel in msg) and ('hello' in msg):
+            #     self.__send_to_channel("Hello!")
 
     def start_bot(self):
         '''
@@ -82,7 +106,7 @@ class Bot():
         '''
         self.__connect_to_irc_server()
         self.__authenticate()
-        self.__send_to_channel('hi')
+        # self.__send_to_channel('hi')
         self.__listen()
 
 
