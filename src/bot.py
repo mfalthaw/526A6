@@ -8,9 +8,12 @@ import sys
 DEBUG = True
 
 class Bot():
-    def __init__(self):
+    def __init__(self, hostname, port, channel, secret_phrase):
         # init bot
-        raise NotImplementedError()
+        self.hostname = hostname
+        self.port = port
+        self.channel = channel
+        self.secret_phrase = secret_phrase
 
 
 def parse_args():
@@ -56,11 +59,7 @@ def log(msg):
         print(msg, file=sys.stderr)
 
 def main():
-    args = parse_args()
-    log(args.hostname)
-    log(args.port)
-    log(args.channel)
-    log(args.secret_phrase)        
+    args = parse_args()        
     
 
 if __name__ == '__main__':
