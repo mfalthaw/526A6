@@ -16,17 +16,15 @@ class Bot():
         self.channel = channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
-        self.nick = None
+        self.nick = 'spyBot'
     
     def __send_message(self, msg):
         self.irc_socket.send(msg.encode('utf-8'))
-
-    def start_bot(self):
+    
+    def __connect_to_irc_server(self):
         '''
-        connect to IRC server and start bot
-        source: https://stackoverflow.com/questions/2968408
+        connect to IRC server
         '''
-        # connect to IRC server
         log('Connecting to: {}:{}'.format(self.hostname, int(self.port)))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
@@ -35,12 +33,23 @@ class Bot():
             except:
                 log('Diconnected from: {}:{}'.format(self.hostname, int(self.port)))
             break
-        
-        self.nick = 'spyBot'
-        self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ':This is a fun bot!\n')
+        self.__authenticate()
+    
+    def __authenticate(self):
+        self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ' :\n')
         self.__send_message('NICK ' + self.nick + '\n')
+        # PRIVMSG <#channel>|<nick> :<message>
         # self.__send_message('PRIVMSG nickserv :iNOOPE\r\n')
         self.__send_message('JOIN #' + self.channel + '\n')
+        self.__send_message('PRIVMSG hi from spybot01!')
+
+    def start_bot(self):
+        '''
+        start bot
+        source: https://stackoverflow.com/questions/2968408
+        '''
+        self.__connect_to_irc_server()
+
 
 
 def parse_args():
