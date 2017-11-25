@@ -7,13 +7,14 @@ import socket
 
 # globals
 DEBUG = True
+BUFFER_SIZE = 2040
 
 class Bot():
     def __init__(self, hostname, port, channel, secret_phrase):
         # init bot
         self.hostname = hostname
         self.port = port
-        self.channel = channel
+        self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
         self.nick = 'spyBot'
@@ -23,7 +24,7 @@ class Bot():
         send message to bot's channel
         format PRIVMSG <#channel> :<message>
         '''
-        self.__send_message('PRIVMSG #' + self.channel + ' :' + msg + '\n')
+        self.__send_message('PRIVMSG ' + self.channel + ' :' + msg + '\n')
     
     def __send_to_user(self, msg, nick):
         '''
@@ -37,7 +38,19 @@ class Bot():
         send any message to irc server
         '''
         self.irc_socket.send(msg.encode('utf-8'))
-    
+
+    def __receive_message(self):
+        '''
+        receives message from IRC server and keeps 
+        connection alive by responding to 'PING #' with 'PONG #'
+        and finally returns message
+        '''
+        received_msg = self.irc_socket.recv(BUFFER_SIZE)
+        if received_msg.decode().find('PING') != -1:
+            self.__send_message('PONG ' + received_msg.split() [1] + '\r\n')
+
+        return received_msg
+
     def __connect_to_irc_server(self):
         '''
         connect to IRC server
@@ -54,10 +67,13 @@ class Bot():
     def __authenticate(self):
         self.__send_message('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ' :\n')
         self.__send_message('NICK ' + self.nick + '\n')
-        # PRIVMSG <#channel>|<nick> :<message>
-        # self.__send_message('PRIVMSG nickserv :iNOOPE\r\n')
-        self.__send_message('JOIN #' + self.channel + '\n')
-        self.__send_to_channel('hi')
+        self.__send_message('JOIN ' + self.channel + '\n')
+    
+    def __listen(self):
+        '''
+        listens for commands from IRC server
+        '''
+
 
     def start_bot(self):
         '''
@@ -66,6 +82,8 @@ class Bot():
         '''
         self.__connect_to_irc_server()
         self.__authenticate()
+        self.__send_to_channel('hi')
+        self.__listen()
 
 
 
