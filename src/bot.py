@@ -84,9 +84,11 @@ class Bot():
         if secret != self.secret_phrase:
             return False
         
-        # validate commands
-       
         return True
+
+    def __handle_command(self, msg):
+        _, msg = msg.split(' :')
+        _, cmd = msg.split(' ')
 
     def __listen(self):
         '''
@@ -95,9 +97,13 @@ class Bot():
         while True:
             msg = self.__receive_message()
             log(msg)
-            self.__validate_msg(msg)
-            # if ('PRIVMSG' in msg) and (self.channel in msg) and ('hello' in msg):
-            #     self.__send_to_channel("Hello!")
+            if not self.__validate_msg(msg):
+                log('Warning: invalid msg --> {}'.format(msg))
+            
+            try:
+                self.__handle_command(msg)
+            except:
+                log('exception!')
 
     def start_bot(self):
         '''
