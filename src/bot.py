@@ -71,16 +71,6 @@ class Bot():
         self.__send_message('USER ' + self.nickname + ' ' + self.nickname + ' ' + self.nickname + ' :\n')
         self.__send_message('NICK ' + self.nickname + '\n')
         self.__send_message('JOIN ' + self.channel + '\n')
-    
-    def __validate_msg(self, msg):
-        '''
-        format: <sender garbage> :<msg>
-        <msg>: secret_phrase command args
-        '''
-        if not ('PRIVMSG' in msg) or not (self.channel in msg):
-            return False
-        
-        return True
 
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
@@ -133,13 +123,31 @@ class Bot():
         self.controller_nickname = new_nickname
         log('Controller nickname updated from: {} to: {}'.format(old_nickname, new_nickname))
 
+    def __validate_msg(self, msg):
+        '''
+        format: <sender garbage> :<msg>
+        <msg>: secret_phrase command args
+        '''
+        if (self.controller != None) and (msg.startswith(':' + self.controller)):
+            return True
+
+        if not ('PRIVMSG' in msg) or not (self.channel in msg):
+            return False
+
+        return True
+
     def __listen(self):
         '''
         listens for commands from IRC server
         '''
         while True:
             msg = self.__receive_message()
-            log(msg)
+            
+            # log(msg)
+            if not self.__validate_msg(msg):
+                log('Warning: non-cotroller msg')
+                continue
+            
             if self.controller == None:
                 self.__verify_controller(msg)
                 continue
@@ -149,10 +157,6 @@ class Bot():
 
             if 'NICK' in msg:
                 self.__update_controller_nickname(msg)
-                continue
-
-            if not self.__validate_msg(msg):
-                log('Warning: non-cotroller msg')
                 continue
 
             log(msg)
