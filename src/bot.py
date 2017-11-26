@@ -5,10 +5,11 @@ import argparse
 import sys
 import socket
 
+from errors import ShutdownError
+
 # globals
 DEBUG = True
 BUFFER_SIZE = 2040
-CMDS = ['status', 'attack', 'move', 'quit', 'shutdown']
 
 class Bot():
     def __init__(self, hostname, port, channel, secret_phrase):
@@ -83,7 +84,7 @@ class Bot():
         
         elif cmd.startswith('shutdown'):
             log('Shutdown command received, terminating connection.')
-            raise OSError('shutdown')
+            raise ShutdownError()
         
         elif cmd.startswith('attack'):
             raise NotImplementedError()
@@ -163,8 +164,9 @@ class Bot():
             log(msg)
             try:
                 self.__handle_command(msg)
-            except OSError:
-                log('socket closed.')
+            except ShutdownError:
+                self.irc_socket.close()
+                log('Disconnected from server.')
                 return
             except ValueError as e:
                 log('Error: {}'.format(e))
