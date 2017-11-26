@@ -82,7 +82,8 @@ class Bot():
             raise NotImplementedError()
         
         elif cmd.startswith('shutdown'):
-            raise NotImplementedError()
+            log('Shutdown command received, terminating connection.')
+            raise OSError('shutdown')
         
         elif cmd.startswith('attack'):
             raise NotImplementedError()
@@ -162,6 +163,9 @@ class Bot():
             log(msg)
             try:
                 self.__handle_command(msg)
+            except OSError:
+                log('socket closed.')
+                return
             except ValueError as e:
                 log('Error: {}'.format(e))
 
