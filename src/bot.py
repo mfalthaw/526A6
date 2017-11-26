@@ -114,12 +114,24 @@ class Bot():
         if self.secret_phrase == secret:
             self.controller = sender
             self.controller_nickname, _ = sender.split('!')
-            self.controller_nickname.replace(':', '')
             log('Authenticated controller: ' + self.controller)
             return True
         else:
             log('Failed to authenticate controller: {}, using secret_phrase: {}'.format(sender, secret))
             return False
+
+    def __update_controller_nickname(self, msg):
+        '''
+        update controller nickname
+        format --> :Guest52!889f1007@87.98.219.117 NICK Guest522
+        '''
+        _, new_nickname = msg.split('NICK')
+        new_nickname = new_nickname.strip()
+        
+        old_nickname = self.controller_nickname
+        self.controller = self.controller.replace(old_nickname, new_nickname)
+        self.controller_nickname = new_nickname
+        log('Controller nickname updated from: {} to: {}'.format(old_nickname, new_nickname))
 
     def __listen(self):
         '''
@@ -127,16 +139,20 @@ class Bot():
         '''
         while True:
             msg = self.__receive_message()
-            if not self.__validate_msg(msg):
-                log('Warning: non-cotroller msg')
-                continue
-
+            log(msg)
             if self.controller == None:
-                # verify controller
                 self.__verify_controller(msg)
                 continue
             
-            if self.controller not in msg:
+            if not msg.startswith(':' + self.controller):
+                continue
+
+            if 'NICK' in msg:
+                self.__update_controller_nickname(msg)
+                continue
+
+            if not self.__validate_msg(msg):
+                log('Warning: non-cotroller msg')
                 continue
 
             log(msg)
