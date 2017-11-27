@@ -55,9 +55,12 @@ class Bot():
 
         return received_msg
 
-    def __connect_to_irc_server(self):
+    def __connect(self):
         '''
         connect to IRC server
+        test IRC server:
+            162.246.156.17
+            12399
         '''
         log('Connecting to: {}:{}'.format(self.hostname, self.port))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,7 +68,7 @@ class Bot():
             try:
                 self.irc_socket.connect((self.hostname, self.port))
             except:
-                log('Diconnected from: {}:{}'.format(self.hostname, self.port))
+                log('Can\'t connect to: {}:{}'.format(self.hostname, self.port))
             break
     
     def __authenticate(self):
@@ -77,20 +80,16 @@ class Bot():
         _, cmd = msg.split(' :')
         
         if cmd.startswith('status'):
-            self.__send_to_controller(self.nickname)
-        
-        elif cmd.startswith('quit'):
-            raise NotImplementedError()
+            self.__do_status()
         
         elif cmd.startswith('shutdown'):
-            log('Shutdown command received, terminating connection.')
-            raise ShutdownError()
+            self.__do_shutdown()
         
         elif cmd.startswith('attack'):
-            raise NotImplementedError()
+            self.__do_attack(cmd)
         
         elif cmd.startswith('move'):
-            raise NotImplementedError()
+            self.__do_move(cmd)
         
         else:
             raise ValueError('Invalid command!')
@@ -171,12 +170,51 @@ class Bot():
             except ValueError as e:
                 log('Error: {}'.format(e))
 
+    def __do_status(self):
+        '''
+        perform status command
+        send this bot's nickname to authenticated controller
+        '''
+        self.__send_to_controller(self.nickname)
+        return
+    
+    def __do_shutdown(self):
+        '''
+        perform shutdown command
+        terminate bot program
+        '''
+        log('Shutdown command received, terminating connection.')
+        raise ShutdownError()
+
+    def __do_attack(self, cmd):
+        '''
+        perform attack command
+        cmd format --> attack <host-name> <port>
+        '''
+        raise NotImplementedError()
+    
+    def __do_move(self, cmd):
+        '''
+        perform move command
+        cmd format --> move <host-name> <port> <channel>
+        '''
+        try:
+            _, host, port, channel = cmd.split(' ')
+        except ValueError:
+            raise ValueError('Failed to split move.')
+        
+        self.hostname = host
+        self.port = port
+        self.channel = channel
+        self.irc_socket.close()
+        self.__connect()
+
     def start_bot(self):
         '''
         start bot
         source: https://stackoverflow.com/questions/2968408
         '''
-        self.__connect_to_irc_server()
+        self.__connect()
         self.__authenticate()
         self.__listen()
 
