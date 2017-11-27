@@ -1,6 +1,10 @@
 You can use this IRC server for testing: 162.246.156.17 port 12399
 
-Some useful links re. IRC protocol:
+### IRC client I'm using (web-based):
+
+https://kiwiirc.com/
+
+### Some useful links re. IRC protocol:
 
 http://chi.cs.uchicago.edu/chirc/irc_examples.html
 
