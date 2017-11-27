@@ -6,6 +6,7 @@ import sys
 import socket
 
 from errors import ShutdownError
+from errors import MoveError
 
 # globals
 DEBUG = True
@@ -62,14 +63,15 @@ class Bot():
             162.246.156.17
             12399
         '''
-        log('Connecting to: {}:{}'.format(self.hostname, self.port))
+        log('Connecting to: {}:{}, channel: {}'.format(self.hostname, int(self.port), self.channel))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
                 self.irc_socket.connect((self.hostname, self.port))
             except:
-                log('Can\'t connect to: {}:{}'.format(self.hostname, self.port))
+                log('Can\'t connect to: {}:{}, channel: {}'.format(self.hostname, int(self.port), self.channel))
             break
+        self.__authenticate()
     
     def __authenticate(self):
         self.__send_message('USER ' + self.nickname + ' ' + self.nickname + ' ' + self.nickname + ' :\n')
@@ -204,10 +206,16 @@ class Bot():
             raise ValueError('Failed to split move.')
         
         self.hostname = host
-        self.port = port
-        self.channel = channel
+        if __validate_port(port):
+            self.port = int(port)
+        else:
+            raise ValueError('Invalid port: {}'.format(port))
+        self.channel = '#' + channel
         self.irc_socket.close()
-        self.__connect()
+        self.start_bot()
+
+    def __validate_port(self, port):
+        return int(port) in range(0, 65536)
 
     def start_bot(self):
         '''
@@ -215,7 +223,6 @@ class Bot():
         source: https://stackoverflow.com/questions/2968408
         '''
         self.__connect()
-        self.__authenticate()
         self.__listen()
 
 
