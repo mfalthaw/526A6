@@ -82,16 +82,28 @@ class Bot():
         _, cmd = msg.split(' :')
         
         if cmd.startswith('status'):
-            self.__do_status()
+            try:
+                self.__do_status()
+            except ValueError as e:
+                log('Error: {}'.format(e))
         
         elif cmd.startswith('shutdown'):
-            self.__do_shutdown()
+            try:
+                self.__do_shutdown()
+            except ValueError as e:
+                log('Error: {}'.format(e))
         
         elif cmd.startswith('attack'):
-            self.__do_attack(cmd)
+            try:
+                self.__do_attack(cmd)
+            except ValueError as e:
+                log('Error: {}'.format(e))
         
         elif cmd.startswith('move'):
-            self.__do_move(cmd)
+            try:
+                self.__do_move(cmd)
+            except ValueError as e:
+                log('Error: {}'.format(e))
         
         else:
             raise ValueError('Invalid command!')
@@ -204,9 +216,9 @@ class Bot():
             _, host, port, channel = cmd.split(' ')
         except ValueError:
             raise ValueError('Failed to split move.')
-        
+        log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
         self.hostname = host
-        if __validate_port(port):
+        if self.__validate_port(port):
             self.port = int(port)
         else:
             raise ValueError('Invalid port: {}'.format(port))
