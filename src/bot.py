@@ -4,6 +4,7 @@
 import argparse
 import sys
 import socket
+import random
 
 from errors import ShutdownError
 from errors import MoveError
@@ -20,7 +21,7 @@ class Bot():
         self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
-        self.nickname = 'spyBot'
+        self.nickname = 'spyBot' + str(random.randint(1, 20))
         self.controller = None
         self.controller_nickname = None
         
@@ -48,8 +49,7 @@ class Bot():
         '''
         send any message to target
         '''
-        log('---SENDING: {}'.format(msg))
-        self.target_socket.send(msg.encode('utf-8'))
+        self.target_socket.send((msg + '\n').encode('utf-8'))
 
     def __send_message(self, msg):
         '''
@@ -76,7 +76,7 @@ class Bot():
             162.246.156.17
             12399
         '''
-        log('Connecting to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
+        log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(self.irc_host, int(self.irc_port), self.channel, self.nickname))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
@@ -261,7 +261,6 @@ class Bot():
         the nick of the bot. On the next attack the counter 
         should be increased by 1.
         '''
-        log('--------')
         self.attack_counter += 1
         try:
             self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
