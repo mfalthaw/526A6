@@ -44,6 +44,13 @@ class Bot():
         '''
         self.__send_message('PRIVMSG ' + self.controller_nickname + ' :' + msg + '\n')
 
+    def __send_to_target(self, msg):
+        '''
+        send any message to target
+        '''
+        log('---SENDING: {}'.format(msg))
+        self.target_socket.send(msg.encode('utf-8'))
+
     def __send_message(self, msg):
         '''
         send any message to irc server
@@ -94,9 +101,10 @@ class Bot():
         self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
-                self.irc_socket.connect((self.target_host, int(self.target_port)))
-            except:
+                self.target_socket.connect((self.target_host, int(self.target_port)))
+            except Exception as e:
                 log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
+                log(e)
             return
 
     def __handle_command(self, msg):
@@ -253,7 +261,15 @@ class Bot():
         the nick of the bot. On the next attack the counter 
         should be increased by 1.
         '''
-        raise NotImplementedError()
+        log('--------')
+        self.attack_counter += 1
+        try:
+            self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
+        except Exception:
+            self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+            return
+        self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+        
 
     def __do_move(self, cmd):
         '''
