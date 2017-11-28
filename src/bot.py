@@ -23,9 +23,12 @@ class Bot():
         self.nickname = 'spyBot'
         self.controller = None
         self.controller_nickname = None
+        
+        # attack variables
         self.target_socket = None
         self.target_host = None
         self.target_port = None
+        self.attack_counter = 0
     
     def __send_to_channel(self, msg):
         '''
@@ -70,7 +73,7 @@ class Bot():
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
-                self.irc_socket.connect((self.irc_host, self.irc_port))
+                self.irc_socket.connect((self.irc_host, int(self.irc_port)))
             except:
                 log('Can\'t connect to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
             break
@@ -87,7 +90,14 @@ class Bot():
             target_host
             target_port
         '''
-        raise NotImplementedError()
+        log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
+        self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while True:
+            try:
+                self.irc_socket.connect((self.target_host, int(self.target_port)))
+            except:
+                log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
+            return
 
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
@@ -221,11 +231,12 @@ class Bot():
         except ValueError:
             raise ValueError('Failed to split attack.')
         
+        # TODO validate ip
         if self.__validate_port(target_port):
-            self.target_host = target_host
             self.target_port = int(target_port)
         else:
             raise ValueError('Invalid port: {}'.format(self.target_port))
+        self.target_host = target_host
 
         log('Attacking {}:{}'.format(self.target_host, self.target_port))
         
@@ -234,7 +245,16 @@ class Bot():
         
         # perform attack
         self.__attack()
-    
+        
+    def __attack(self):
+        '''
+        Every bot will connect to the given host/port and 
+        send a message containing two entries: a counter and
+        the nick of the bot. On the next attack the counter 
+        should be increased by 1.
+        '''
+        raise NotImplementedError()
+
     def __do_move(self, cmd):
         '''
         perform move command
@@ -253,15 +273,6 @@ class Bot():
         self.channel = '#' + channel
         self.irc_socket.close()
         self.start_bot()
-    
-    def __attack():
-        '''
-        Every bot will connect to the given host/port and 
-        send a message containing two entries: a counter and
-        the nick of the bot. On the next attack the counter 
-        should be increased by 1.
-        '''
-        raise NotImplementedError()
 
     def __validate_port(self, port):
         return int(port) in range(0, 65536)
