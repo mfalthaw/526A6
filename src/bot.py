@@ -262,6 +262,9 @@ class Bot():
 
         # TODO close socket
         self.target_socket.close()
+
+        # send status to controller
+        self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
         
     def __attack(self):
         '''
@@ -278,7 +281,6 @@ class Bot():
         except Exception:
             self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
             return
-        self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
         
 
     def __do_move(self, cmd):
