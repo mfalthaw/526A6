@@ -253,18 +253,11 @@ class Bot():
         self.target_host = target_host
 
         log('Attacking {}:{}'.format(self.target_host, self.target_port))
-        
         # connect to target
         self.__connect_to_target()
-        
         # perform attack
         self.__attack()
-
-        # TODO close socket
-        self.target_socket.close()
-
-        # send status to controller
-        self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+        return
         
     def __attack(self):
         '''
@@ -278,11 +271,13 @@ class Bot():
         self.attack_counter += 1
         try:
             self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
-        except Exception:
+            # close target socket
+            self.target_socket.close()
+        except Exception as e:
             self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
             return
-        
-
+        self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+   
     def __do_move(self, cmd):
         '''
         perform move command
