@@ -78,9 +78,12 @@ class Bot():
         '''
         log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(self.irc_host, int(self.irc_port), self.channel, self.nickname))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.irc_socket.settimeout(5)
         while True:
             try:
                 self.irc_socket.connect((self.irc_host, int(self.irc_port)))
+            except socket.timeout:
+                log('IRC connection timedout!')
             except:
                 log('Can\'t connect to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
             break
@@ -99,9 +102,12 @@ class Bot():
         '''
         log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
         self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.target_socket.settimeout(5)
         while True:
             try:
                 self.target_socket.connect((self.target_host, int(self.target_port)))
+            except socket.timeout:
+                log('Target connection timedout!')
             except Exception as e:
                 log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
                 log(e)
