@@ -21,7 +21,7 @@ class Bot():
         self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
-        self.nickname = 'spyBot' + str(random.randint(1, 20))
+        self.nickname = 'spyBot'# + str(random.randint(1, 20))
         self.controller = None
         self.controller_nickname = None
         
@@ -78,12 +78,12 @@ class Bot():
         '''
         log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(self.irc_host, int(self.irc_port), self.channel, self.nickname))
         self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.irc_socket.settimeout(5)
+        self.irc_socket.settimeout(5000)
         while True:
             try:
                 self.irc_socket.connect((self.irc_host, int(self.irc_port)))
-            # except socket.timeout:
-            #     log('IRC connection timedout!')
+            except socket.timeout:
+                log('IRC connection timedout!')
             except:
                 log('Can\'t connect to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
             break
@@ -99,19 +99,23 @@ class Bot():
         connect to target address using:
             target_host
             target_port
+        
+        return True if connection to target is successful, False otherwise
         '''
         log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
         self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.target_socket.settimeout(5)
+        self.target_socket.settimeout(5000)
         while True:
             try:
                 self.target_socket.connect((self.target_host, int(self.target_port)))
-            # except socket.timeout:
-            #     log('Target connection timedout!')
+            except socket.timeout:
+                log('Target connection timedout!')
+                return False
             except Exception as e:
                 log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
                 log(e)
-            return
+                return False
+            return True
 
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
@@ -265,8 +269,6 @@ class Bot():
         send a message containing two entries: a counter and
         the nick of the bot. On the next attack the counter 
         should be increased by 1.
-
-        TODO don't disconnect until successful connection is established
         '''
         self.attack_counter += 1
         try:
@@ -282,6 +284,8 @@ class Bot():
         '''
         perform move command
         cmd format --> move <host-name> <port> <channel>
+
+        TODO don't disconnect until successful connection is established
         '''
         try:
             _, host, port, channel = cmd.split(' ')
