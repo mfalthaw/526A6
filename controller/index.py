@@ -3,45 +3,46 @@
 import asyncio
 
 from .utils import parse_args, Logger
+from .protocol import heartbeat
+from .handlers import handle
 
-def connect():
-    ''' Connect to the IRC server '''
+def start():
+    ''' Setup event loop and start controller '''
 
     # Parse arguments
     args = parse_args()
 
     # Setup event loop
     loop = asyncio.get_event_loop()
-    coro = start(args)
-    client = loop.run_until_complete(coro)
+    coro = connect(args)
+
 
     # Run until Ctrl+C is pressed
     try:
-        loop.run_forever()
+        loop.run_until_complete(coro)
     except KeyboardInterrupt:
         Logger.debug('Keyboard interruption')
 
     # Close the client
     Logger.debug('Closing client')
-    client.close()
-    loop.run_until_complete(client.wait_closed())
+    coro.close()
+    loop.run_until_complete(coro)
     loop.close()
 
-async def start(args):
-    ''' Initialize connection to  '''
+async def connect(args):
+    ''' Connect to IRC server and start tasks  '''
     reader, writer = await asyncio.open_connection(args.hostname, args.port)
 
-    coro = listener(reader, writer)
+    # Handshake
 
-    asyncio.get_event_loop().run_until_complete(coro)
+    # Setup the handler and heartbeat
+    tasks = [
+        handle(reader, writer),
+        heartbeat(reader, writer)
+    ]
 
-    while True:
-        pass
+    # Combine the tasks
+    client = asyncio.gather(*tasks)
 
-
-async def listener(reader, writer):
-    ''' Listen for commands '''
-
-    while True:
-        commmand = input('controller is ready for commands')
-        handle(command)
+    # Wait on both tasks
+    await client

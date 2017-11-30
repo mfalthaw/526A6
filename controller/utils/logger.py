@@ -3,10 +3,12 @@
 class Logger:
     ''' Logger '''
 
-    def log(self, msg):
+    @staticmethod
+    def log(msg):
         ''' log a message '''
         print(msg)
 
-    def debug(self, msg):
+    @staticmethod
+    def debug(msg):
         ''' log a debug message '''
         print(msg)

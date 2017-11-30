@@ -1,5 +1,5 @@
-''' Handle '''
+''' handle '''
 
-def handle(reader, writer, command):
+def handle(reader, writer):
     ''' Handle the given command '''
     pass
