@@ -100,7 +100,7 @@ class Bot():
         '''
         log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(host, port, channel, nickname))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(5000)
+        sock.settimeout(5)
         while True:
             try:
                 sock.connect((host, int(port)))
@@ -112,6 +112,7 @@ class Bot():
                 return False
             break
         self.__authenticate(sock, nickname, channel)
+        sock.settimeout(None)
         return sock
     
     def __authenticate(self, sock, nickname, channel):
@@ -129,7 +130,7 @@ class Bot():
         '''
         log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
         self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.target_socket.settimeout(5000)
+        self.target_socket.settimeout(5)
         while True:
             try:
                 self.target_socket.connect((self.target_host, int(self.target_port)))
@@ -140,6 +141,7 @@ class Bot():
                 log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
                 log(e)
                 return False
+            sock.settimeout(None)
             return True
 
     def __handle_command(self, msg):
