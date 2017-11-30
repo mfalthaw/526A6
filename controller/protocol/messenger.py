@@ -2,12 +2,10 @@
 
 import re
 
-from .heartbeat import heartbeat
+from .heartbeat import heartbeat, is_heartbeat
 
 class Messenger:
     ''' Handle messages between IRC server and client '''
-
-    __PING_REGEX = re.compile(r'')
 
     def __init__(self, reader, writer):
         self.reader = reader
@@ -21,12 +19,17 @@ class Messenger:
         ''' Wait for a message from the IRC server '''
         while True:
             msg = await self.reader.readline().strip()
-            if Messenger.__PING_REGEX.match(msg):
+            if is_heartbeat(msg):
                 await heartbeat(self, msg)
                 continue
 
             return msg
 
-    async def heartbeat(self):
-        ''' '''
-        pass
+    async def listen_heartbeat(self):
+        ''' Listen for heartbeat, raise error if not heartbeat message '''
+        while True:
+            msg = await self.reader.readline().strip():
+            if is_heartbeat(msg):
+                await heartbeat(self, msg)
+            else:
+                raise Error('invalid heartbeat message: {0}'.format(msg))

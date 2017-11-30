@@ -1,5 +1,5 @@
 ''' Handler for different commands '''
 
-from .index import handle
+from .index import Handler
 
-__all__ = ['handle']
+__all__ = ['Handler']

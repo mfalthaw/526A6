@@ -4,7 +4,7 @@ import asyncio
 
 from .utils import parse_args, Logger
 from .protocol import Messenger
-from .handlers import handle
+from .handlers import Handler
 
 def start():
     ''' Setup event loop and start controller '''
@@ -15,7 +15,6 @@ def start():
     # Setup event loop
     loop = asyncio.get_event_loop()
     coro = connect(args)
-
 
     # Run until Ctrl+C is pressed
     try:
@@ -32,13 +31,14 @@ def start():
 async def connect(args):
     ''' Connect to IRC server and start tasks  '''
     reader, writer = await asyncio.open_connection(args.hostname, args.port)
-    messenger
+    messenger = Messenger(reader, writer)
+    handler = Handler(messenger)
 
     # Handshake
 
     # Setup the handler (leave room for other misc tasks)
     tasks = [
-        handle(reader, writer),
+        handler.handle(reader, writer),
     ]
 
     # Combine the tasks
