@@ -1,0 +1,2 @@
+NICK='controller'
+USER=''

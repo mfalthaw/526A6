@@ -1,3 +1,5 @@
-from .heartbeat import heartbeat
+''' protocol exports '''
 
-__all__ = ['heartbeat']
+from .messenger import Messenger
+
+__all__ = ['Messenger']

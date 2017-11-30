@@ -1,5 +1,13 @@
 ''' handshake '''
 
-async def handshake(reader, writer):
+from ..config import NICK, USER
+
+async def handshake(messenger):
     ''' Perform handshake with IRC server '''
-    pass
+
+    # Send NICK
+
+    # Send USER
+
+
+

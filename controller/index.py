@@ -3,7 +3,7 @@
 import asyncio
 
 from .utils import parse_args, Logger
-from .protocol import heartbeat
+from .protocol import Messenger
 from .handlers import handle
 
 def start():
@@ -32,13 +32,13 @@ def start():
 async def connect(args):
     ''' Connect to IRC server and start tasks  '''
     reader, writer = await asyncio.open_connection(args.hostname, args.port)
+    messenger
 
     # Handshake
 
-    # Setup the handler and heartbeat
+    # Setup the handler (leave room for other misc tasks)
     tasks = [
         handle(reader, writer),
-        heartbeat(reader, writer)
     ]
 
     # Combine the tasks
