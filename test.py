@@ -2,19 +2,25 @@ import asyncio
 
 def test():
     loop = asyncio.get_event_loop()
+    coro = main()
+
+    try:
+        loop.run_until_complete(coro)
+    except KeyboardInterrupt:
+        print('\n...closing')
+
+    coro.close()
+    asyncio.wait(coro)
+
+
+async def main():
     tasks = [
         a(),
         b()
     ]
 
     client = asyncio.gather(*tasks)
-
-    try:
-        loop.run_until_complete(client)
-    except KeyboardInterrupt:
-        print('closing')
-
-    client.cancel()
+    await client
 
 
 async def a():
