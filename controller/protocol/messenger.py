@@ -22,9 +22,11 @@ class Messenger:
         return await self.writer.write('PRIVMSG {0} :{1}\r\n'.format(msg, self.channel))
 
     async def join(self):
+        ''' Join the channel '''
         return await self.writer.write('JOIN :{}'.format(self.channel))
 
     async def send_quit(self):
+        ''' Send quit message '''
         return await self.writer.write('QUIT')
 
     async def read(self):
@@ -37,12 +39,17 @@ class Messenger:
 
             return msg
 
-    async def listen_heartbeat(self):
+    async def listen_irc(self):
         ''' Listen for heartbeat, raise error if not heartbeat message '''
         while True:
-            msg = await self.reader.readline().strip():
+            msg = await self.reader.readline().strip()
             if is_heartbeat(msg):
                 await heartbeat(self, msg)
             else:
                 # Print the message to user
                 Logger.log(msg)
+
+
+    async def close(self):
+        ''' Close the messenger '''
+        await self.writer.close()

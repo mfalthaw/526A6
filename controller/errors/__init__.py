@@ -1,3 +1,5 @@
-from .timeout_expired impot TimeoutExpired
+''' error exports '''
 
-__all__ = ['TimeoutError']
+from .quit_signal import QuitSignal
+
+__all__ = ['QuitSignal']

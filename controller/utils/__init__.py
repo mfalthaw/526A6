@@ -2,6 +2,6 @@
 
 from .arg_parser import parse_args
 from .logger import Logger
-from .command_parser import parse_command
+from .async_input import AsyncInput
 
-__all__ = ['parse_args', 'Logger', 'command_parser']
+__all__ = ['parse_args', 'Logger', 'command_parser', 'AsyncInput']

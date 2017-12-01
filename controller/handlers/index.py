@@ -3,7 +3,8 @@
 import asyncio
 
 from .quit import quit_handle
-from ..utils import Logger
+from ..utils import Logger, AsyncInput
+from ..errors import QuitSignal
 
 class Handler:
     ''' Handle the different commands '''
@@ -22,11 +23,6 @@ class Handler:
     def __init__(self, messenger):
         self.messenger = messenger
 
-
-    async def listen(self):
-        ''' Listen for commands from the user or IRC server '''
-        pass
-
     async def handle(self):
         ''' Deal with the command appropriately '''
 
@@ -34,7 +30,7 @@ class Handler:
 
             # listen for user input OR for heartbeat
             done, pending = await asyncio.wait([
-                self.__listen_heartbeat(),
+                self.messenger.listen_irc(),
                 self.__listen_user()
             ], return_when=asyncio.FIRST_COMPLETED)
 
@@ -49,23 +45,25 @@ class Handler:
             split_line = line.split(' ', num=1)
             command = split_line[0]
 
-            # If basic command, forward message to
+            # If basic command, forward message to IRC
             if command in Handler.__BASIC_COMMANDS:
                 self.messenger.send_channel(line)
 
+            # If advanced command, handle
             try:
-                # If advanced command, handle
-                Handler.__HANDLERS[command](self.messenger)
+                await Handler.__HANDLERS[command](self.messenger)
+
+            # Otherwise, inform user their command was incorrect
             except KeyError:
-                # Otherwise, inform user their command was incorrect
-                Logger.log('invalid command')
+                Logger.log('invalid command: {}\n'.format(command))
 
-
-
-    async def __listen_heartbeat(self):
-        ''' listen for heartbeat from server '''
-        return await self.messenger.listen_heartbeat()
+            except QuitSignal:
+                Logger.log('quitting...')
+                await self.messenger.close()
+                await asyncio.get_event_loop().stop()
+                return
 
     async def __listen_user(self):
         ''' Listen for input from user '''
-        raise NotImplementedError()
+        ainput = AsyncInput()
+        return await ainput.read('awaiting command...')

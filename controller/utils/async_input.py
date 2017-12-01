@@ -6,19 +6,19 @@ from asyncio.streams import StreamWriter, FlowControlMixin
 import sys
 
 
-class Input:
+class AsyncInput:
     ''' Class to read from input async '''
 
     def __init__(self, input_reader=None, input_writer=None):
-        self.reader = input_reader
-        self.writer = input_writer
+        self.__reader = input_reader
+        self.__writer = input_writer
 
-    async def async_input(self, message):
+    async def read(self, message):
         ''' Read from stdin async '''
         if isinstance(message, str):
             message = message.encode('utf8')
 
-        if (self.reader, self.writer) == (None, None):
+        if (self.__reader, self.__writer) == (None, None):
             reader, writer = await self.__stdio()
 
         writer.write(message)
