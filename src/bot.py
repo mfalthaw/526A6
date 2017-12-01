@@ -87,7 +87,7 @@ class Bot():
             162.246.156.17
             12399
         '''
-        self.irc_socket = self.__connect(self.irc_socket, self.irc_host, int(self.irc_port), self.channel, self.nickname)
+        return self.__connect(self.irc_socket, self.irc_host, int(self.irc_port), self.channel, self.nickname)
 
     def __connect(self, sock, host, port, channel, nickname):
         '''
@@ -342,9 +342,11 @@ class Bot():
         '''
         start bot
         source: https://stackoverflow.com/questions/2968408
-        '''
-        self.__connect_to_irc()
-        self.__listen()
+        '''  
+        self.irc_socket = self.__connect_to_irc()
+        if self.irc_socket != False:
+            self.__listen()
+        return
 
 
 
