@@ -78,7 +78,7 @@ class Bot():
     def __attempt_connection(self):
         '''
         '''
-        return self.__connect(self.move_socket, self.move_host, int(self.move_port), self.move_channel, self.nickname)
+        return self.__connect(self.move_socket, self.move_host, int(self.move_port), self.move_channel, self.nickname, None)
 
     def __connect_to_irc(self):
         '''
@@ -87,9 +87,9 @@ class Bot():
             162.246.156.17
             12399
         '''
-        return self.__connect(self.irc_socket, self.irc_host, int(self.irc_port), self.channel, self.nickname)
+        return self.__connect(self.irc_socket, self.irc_host, int(self.irc_port), self.channel, self.nickname, 5)
 
-    def __connect(self, sock, host, port, channel, nickname):
+    def __connect(self, sock, host, port, channel, nickname, timeout):
         '''
         connect to IRC server using provided:
             sock
@@ -100,7 +100,7 @@ class Bot():
         '''
         log('Connecting to: {}:{}, channel: {}, nickname: {}'.format(host, port, channel, nickname))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(5)
+        sock.settimeout(timeout)
         while True:
             try:
                 sock.connect((host, int(port)))
@@ -130,7 +130,7 @@ class Bot():
         '''
         log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
         self.target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.target_socket.settimeout(5)
+        # self.target_socket.settimeout(5)
         while True:
             try:
                 self.target_socket.connect((self.target_host, int(self.target_port)))
@@ -141,7 +141,7 @@ class Bot():
                 log('Can\'t connect to: {}:{}'.format(self.target_host, int(self.target_port)))
                 log(e)
                 return False
-            sock.settimeout(None)
+            # sock.settimeout(None)
             return True
 
     def __handle_command(self, msg):
@@ -297,7 +297,6 @@ class Bot():
         the nick of the bot. On the next attack the counter 
         should be increased by 1.
         '''
-        self.attack_counter += 1
         try:
             self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
             # close target socket
@@ -305,6 +304,7 @@ class Bot():
         except Exception as e:
             self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
             return
+        self.attack_counter += 1
         self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
    
     def __do_move(self, cmd):
