@@ -31,14 +31,14 @@ def start():
 async def connect(args):
     ''' Connect to IRC server and start tasks  '''
     reader, writer = await asyncio.open_connection(args.hostname, args.port)
-    messenger = Messenger(reader, writer)
+    messenger = Messenger(reader, writer, args.channel)
     handler = Handler(messenger)
 
     # Handshake
 
     # Setup the handler (leave room for other misc tasks)
     tasks = [
-        handler.handle(reader, writer),
+        handler.handle(),
     ]
 
     # Combine the tasks

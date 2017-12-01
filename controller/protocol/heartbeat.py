@@ -13,5 +13,5 @@ async def heartbeat(messenger, line):
 
 def is_heartbeat(line):
     ''' determine if line is a heartbeat '''
-    pattern = re.compile(r'')
+    pattern = re.compile(r'^PING.*$')
     return bool(pattern.match(line))

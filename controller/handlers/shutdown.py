@@ -1,1 +1,5 @@
-''' Error thrown when the controller wishes to terminate safely '''
+''' shutdown '''
+
+def shutdown_handle():
+    ''' '''
+    pass
