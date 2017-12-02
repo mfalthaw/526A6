@@ -3,7 +3,7 @@
 import asyncio
 
 from .utils import parse_args, Logger
-from .protocol import Messenger
+from .protocol import Messenger, handshake
 from .handlers import Handler
 
 def start():
@@ -21,20 +21,22 @@ def start():
         loop.run_until_complete(coro)
     except KeyboardInterrupt:
         Logger.debug('Keyboard interruption')
+    except ConnectionRefusedError:
+        Logger.log('No such IRC server')
 
     # Close the client
     Logger.debug('Closing client')
     coro.close()
-    loop.run_until_complete(coro)
     loop.close()
 
 async def connect(args):
-    ''' Connect to IRC server and start tasks  '''
-    reader, writer = await asyncio.open_connection(args.hostname, args.port)
+    ''' Connect to IRC server and start tasks '''
+    reader, writer = await asyncio.open_connection(args.hostname, port=args.port, loop=asyncio.get_event_loop())
     messenger = Messenger(reader, writer, args.channel)
     handler = Handler(messenger)
 
     # Handshake
+    await handshake(messenger, args.secret_phrase)
 
     # Setup the handler (leave room for other misc tasks)
     tasks = [
