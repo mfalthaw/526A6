@@ -28,6 +28,7 @@ def start():
     Logger.debug('Closing client')
     coro.close()
     loop.close()
+    return
 
 async def connect(args):
     ''' Connect to IRC server and start tasks '''

@@ -1,10 +1,10 @@
-''' async input reader, reference from: https://gist.github.com/nathan-hoad/8966377 '''
+''' async input reader '''
 
-import os
+import select
 import asyncio
-from asyncio.streams import StreamWriter, FlowControlMixin
 import sys
 
+from ..utils import Logger
 
 class AsyncInput:
     ''' Class to read from input async '''
@@ -13,30 +13,20 @@ class AsyncInput:
         self.__reader = input_reader
         self.__writer = input_writer
 
+
     async def read(self, message):
-        ''' Read from stdin async '''
-        if isinstance(message, str):
-            message = message.encode('utf8')
+        '''
+        Read from stdin async
+        * only works on unix
 
-        if (self.__reader, self.__writer) == (None, None):
-            reader, writer = await self.__stdio()
+        Thanks to https://repolinux.wordpress.com/2012/10/09/non-blocking-read-from-stdin-in-python/
+        '''
+        Logger.log(message)
 
-        writer.write(message)
-        await writer.drain()
-
-        line = await reader.readline()
-        return line.decode('utf8').replace('\r', '').replace('\n', '')
-
-    async def __stdio(self, loop=None):
-        if loop is None:
-            loop = asyncio.get_event_loop()
-
-        reader = asyncio.StreamReader()
-        reader_protocol = asyncio.StreamReaderProtocol(reader)
-
-        writer_transport, writer_protocol = await loop.connect_write_pipe(FlowControlMixin, os.fdopen(1, 'wb'))
-        writer = StreamWriter(writer_transport, writer_protocol, None, loop)
-
-        await loop.connect_read_pipe(lambda: reader_protocol, sys.stdin)
-
-        return reader, writer
+        while True:
+            user_input = select.select([sys.stdin], [], [], 0)[0]
+            if user_input:
+                line = sys.stdin.readline().replace('\n', '')
+                return line
+            else:
+                await asyncio.sleep(1 / 300)

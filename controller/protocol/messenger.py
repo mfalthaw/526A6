@@ -51,9 +51,9 @@ class Messenger:
                 Logger.log(msg)
 
 
-    async def close(self):
+    def close(self):
         ''' Close the messenger '''
-        await self.__writer.close()
+        self.__writer.close()
 
     async def __read_line(self):
-        return await self.__reader.readline().decode('utf_8').strip()
+        return (await self.__reader.readline()).decode('utf_8').strip()

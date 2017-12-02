@@ -28,21 +28,20 @@ class Handler:
 
         while True:
 
-            # listen for user input OR for heartbeat
-            done, pending = await asyncio.wait([
-                self.messenger.listen_irc(),
-                self.__listen_user()
-            ], return_when=asyncio.FIRST_COMPLETED)
+            # listen for user input OR for message from server
+            done, pending = await asyncio.wait(
+                [self.messenger.listen_irc(), self.__listen_user()],
+                return_when=asyncio.FIRST_COMPLETED)
 
             # Completed is always listen_user(), cancel pending
-            pending.cancel()
-            await pending
+            for task in pending:
+                task.cancel()
 
             # Deal with results
             line = done.pop().result()
 
             # Parse line
-            split_line = line.split(' ', num=1)
+            split_line = line.split(' ', 1)
             command = split_line[0]
 
             # If basic command, forward message to IRC
@@ -59,8 +58,9 @@ class Handler:
 
             except QuitSignal:
                 Logger.log('quitting...')
-                await self.messenger.close()
-                await asyncio.get_event_loop().stop()
+                self.messenger.close()
+                for task in asyncio.Task.all_tasks():
+                    task.cancel()
                 return
 
     async def __listen_user(self):
