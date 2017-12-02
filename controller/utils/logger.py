@@ -1,5 +1,7 @@
 ''' logger.py '''
 
+from ..config import DEBUG
+
 class Logger:
     ''' Logger '''
 
@@ -9,6 +11,10 @@ class Logger:
         print(msg)
 
     @staticmethod
-    def debug(msg):
+    def debug(msg, log_msg=None):
         ''' log a debug message '''
-        print(msg)
+        if DEBUG:
+            print(msg)
+        elif log_msg:
+            print(log_msg)
+

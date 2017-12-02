@@ -35,10 +35,11 @@ class Messenger:
         while True:
             msg = await self.__read_line()
             if is_heartbeat(msg):
+                Logger.debug('<-- {}'.format(msg))
                 await heartbeat(self, msg)
             else:
                 # Print the message to user
-                Logger.log('<-- {}'.format(msg))
+                Logger.debug('<-- {}'.format(msg), msg)
 
 
     def close(self):
