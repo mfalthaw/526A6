@@ -1,2 +1,2 @@
 NICK='controller'
-USER=''
+USER='attack_time'

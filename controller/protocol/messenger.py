@@ -15,6 +15,7 @@ class Messenger:
         ''' send message to IRC server '''
         payload = ('{0}\r\n'.format(msg)).encode('utf_8')
         self.__writer.write(payload)
+        Logger.debug('--> {}'.format(payload))
         return
 
     async def send_channel(self, msg):
@@ -29,17 +30,6 @@ class Messenger:
         ''' Send quit message '''
         return await self.send('QUIT')
 
-    async def read(self):
-        ''' Wait for a message from the IRC server '''
-        while True:
-            msg = await self.__read_line()
-            msg = msg.strip()
-            if is_heartbeat(msg):
-                await heartbeat(self, msg)
-                continue
-
-            return msg
-
     async def listen_irc(self):
         ''' Listen for heartbeat, raise error if not heartbeat message '''
         while True:
@@ -48,7 +38,7 @@ class Messenger:
                 await heartbeat(self, msg)
             else:
                 # Print the message to user
-                Logger.log(msg)
+                Logger.log('<-- {}'.format(msg))
 
 
     def close(self):

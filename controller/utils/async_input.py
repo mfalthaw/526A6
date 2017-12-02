@@ -21,7 +21,7 @@ class AsyncInput:
 
         Thanks to https://repolinux.wordpress.com/2012/10/09/non-blocking-read-from-stdin-in-python/
         '''
-        Logger.log(message)
+        Logger.log('=== {} ==='.format(message))
 
         while True:
             user_input = select.select([sys.stdin], [], [], 0)[0]
