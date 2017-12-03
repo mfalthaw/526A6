@@ -1,7 +1,6 @@
 ''' handle '''
 
 import asyncio
-from argparse import ArgumentError
 
 from .quit import quit_handle
 from .attack import attack_handle
@@ -62,8 +61,8 @@ class Handler:
                     task.cancel()
                 return
 
-            except ArgumentError as err:
-                Logger.log(str(err))
+            except SystemExit:
+                pass
 
     async def __listen_user(self):
         ''' Listen for input from user '''
