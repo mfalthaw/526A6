@@ -1,5 +1,5 @@
 ''' config exports '''
 
-from .index import NICK, USER, DEBUG
+from .index import NICK, DEBUG
 
-__all__ = ['NICK', 'USER', 'DEBUG']
+__all__ = ['NICK', 'DEBUG']

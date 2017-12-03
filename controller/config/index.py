@@ -1,3 +1,2 @@
-NICK='controller'
-USER='attack_time'
-DEBUG=True
+NICK='conbot8080'
+DEBUG=False

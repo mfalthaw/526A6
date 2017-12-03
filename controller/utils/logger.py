@@ -18,3 +18,7 @@ class Logger:
         elif log_msg:
             print(log_msg)
 
+    @staticmethod
+    def logline():
+        ''' Log a line to show results '''
+        Logger.log('----------------------------------------------------')
