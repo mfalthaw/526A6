@@ -1,23 +1,26 @@
 ''' handle '''
 
 import asyncio
+from argparse import ArgumentError
 
 from .quit import quit_handle
+from .attack import attack_handle
+from .move import move_handle
+from .shutdown import shutdown_handle
+from .status import status_handle
+
 from ..utils import Logger, AsyncInput
 from ..errors import QuitSignal
 
 class Handler:
     ''' Handle the different commands '''
 
-    __BASIC_COMMANDS = [
-        'attack',
-        'move',
-        'shutdown',
-        'status',
-    ]
-
     __HANDLERS = {
         'quit': quit_handle,
+        'attack': attack_handle,
+        'move': move_handle,
+        'shutdown': shutdown_handle,
+        'status': status_handle,
     }
 
     def __init__(self, messenger):
@@ -44,13 +47,9 @@ class Handler:
             split_line = line.split(' ', 1)
             command = split_line[0]
 
-            # If basic command, forward message to IRC
-            if command in Handler.__BASIC_COMMANDS:
-                self.messenger.send_channel(line)
-
-            # If advanced command, handle
+            # Handle commands
             try:
-                await Handler.__HANDLERS[command](self.messenger)
+                await Handler.__HANDLERS[command](self.messenger, line)
 
             # Otherwise, inform user their command was incorrect
             except KeyError:
@@ -62,6 +61,9 @@ class Handler:
                 for task in asyncio.Task.all_tasks():
                     task.cancel()
                 return
+
+            except ArgumentError as err:
+                Logger.log(str(err))
 
     async def __listen_user(self):
         ''' Listen for input from user '''
