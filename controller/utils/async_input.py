@@ -3,6 +3,7 @@
 import select
 import asyncio
 import sys
+from termios import tcflush, TCIOFLUSH
 
 from ..utils import Logger
 
@@ -22,6 +23,8 @@ class AsyncInput:
         Thanks to https://repolinux.wordpress.com/2012/10/09/non-blocking-read-from-stdin-in-python/
         '''
         Logger.log('=== {} ==='.format(message))
+        await asyncio.sleep(0)
+        tcflush(sys.stdin, TCIOFLUSH)
 
         while True:
             user_input = select.select([sys.stdin], [], [], 0)[0]
