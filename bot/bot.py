@@ -238,7 +238,7 @@ class Bot():
             
             if not self.__validate_msg(msg):
                 log('Warning: non-cotroller msg')
-                # log(msg)
+                log(msg)
                 continue
             
             if self.controller == None:
