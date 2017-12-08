@@ -14,7 +14,10 @@ async def handshake(messenger, secret):
         if num_tries == 0:
             raise Exception('Failed to join server after 10 tries')
         # Generate NICK
-        nick = '{0}-{1}'.format(NICK, uuid.uuid4())
+        if num_tries < 10:
+            nick = '{0}-{1}'.format(NICK, uuid.uuid4())
+        else:
+            nick = NICK
 
         # Send NICK
         messenger.send('NICK {}'.format(nick))
@@ -33,7 +36,7 @@ async def handshake(messenger, secret):
                 sending_nick = False
                 break
 
-        num_tries += 1
+        num_tries -= 1
 
     # Send JOIN
     messenger.join()

@@ -45,17 +45,27 @@ class Messenger:
         responses = self.__responses
         self.__responses = []
 
+        # Log the responses
+        Logger.debugline()
+        Logger.debug('*** Responses ***')
+        for response in responses:
+            Logger.debug(response)
+
         # Parse the messages TODO: check if we should remove this
         # (might not be necessary if irc does this)
-        responses = filter(lambda line: 'PRIVMSG' in line, responses)
-        responses = map(lambda line: line.split(' :', 1), responses)
+        responses = list(filter(lambda line: 'PRIVMSG' in line, responses))
+        responses = list(map(lambda line: line.split(' :', 1)[1], responses))
 
         # Filter if necessary
         if key:
-            responses = filter(lambda line: key in line, responses)
+            responses = list(filter(lambda line: key in line, responses))
+
+        Logger.debug('\n*** Filtered Responses ***')
+        for response in responses:
+            Logger.debug(response)
 
         # Return the responses
-        return list(responses)
+        return responses
 
     async def read_line(self):
         ''' Read a line '''

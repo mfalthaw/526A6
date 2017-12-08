@@ -2,7 +2,7 @@
 
 from ..utils import Logger
 
-async def status_handle(messenger):
+async def status_handle(messenger, _):
     ''' Request status from the bots '''
     messenger.send_channel('status')
 
@@ -12,7 +12,7 @@ async def status_handle(messenger):
 
     # Report diagnostics
     Logger.log('----------------------------------------------------')
-    Logger.log('Number of bots: {}'.format(len(names)))
+    Logger.log('Number of bots: {}'.format(len(responses)))
     if names:
-        Logger.log('Bot names: {}'.format(names))
+        Logger.log('Bot name{}: {}'.format('' if (len(responses) == 1) else 's', names))
     Logger.log('----------------------------------------------------')

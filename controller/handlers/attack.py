@@ -20,7 +20,7 @@ async def attack_handle(messenger, line):
     messenger.send_channel('attack {0} {1}'.format(args.host_name, args.port))
 
     # Collect responses & perform analytics
-    responses = await messenger.read('attack')
+    responses = await messenger.read('Attack')
     successes = sum('success' in response for response in responses)
     failures = sum('fail' in response for response in responses)
     try:
