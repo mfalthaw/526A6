@@ -306,17 +306,21 @@ class Bot():
 
         log('Attacking {}:{}'.format(self.target_host, self.target_port))
 
-        self.__connect_to_target()
-        self.__attack()
+        connected_to_target = self.__connect_to_target()
+        self.__attack(connected_to_target)
         return
         
-    def __attack(self):
+    def __attack(self, connected_to_target):
         '''
         Every bot will connect to the given host/port and 
         send a message containing two entries: a counter and
         the nick of the bot. On the next attack the counter 
         should be increased by 1.
         '''
+        if not connected_to_target:
+            self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+            return
+        
         try:
             self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
             # close target socket
