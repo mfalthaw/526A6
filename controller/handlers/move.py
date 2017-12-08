@@ -27,10 +27,8 @@ async def move_handle(messenger, line):
     failures = list(response for response in responses if 'fail' in response)
 
     Logger.logline()
-    if failures:
-        Logger.log('Number of failures: {}'.format(len(failures)))
-    elif not responses:
+    if not responses:
         Logger.log('Move failed (No bots)')
     else:
-        Logger.log('Move successful')
+        Logger.log('Bots moved successfully: {}/{}'.format((len(responses) - len(failures)), len(responses)))
     Logger.logline()

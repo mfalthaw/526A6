@@ -1,10 +1,12 @@
 ''' protocol messenger '''
 
 import asyncio
+import uuid
 
 from .heartbeat import heartbeat, is_heartbeat
 from ..utils import Logger
 from ..errors import QuitSignal
+from ..config import NICK
 
 class Messenger:
     ''' Handle messages between IRC server and client '''
@@ -17,6 +19,7 @@ class Messenger:
         return self
 
     def __init__(self, channel, host, port):
+        self.__nick = None
         self.__reader = None
         self.__writer = None
         self.__channel = channel
@@ -51,8 +54,7 @@ class Messenger:
         for response in responses:
             Logger.debug(response)
 
-        # Parse the messages TODO: check if we should remove this
-        # (might not be necessary if irc does this)
+        # Parse the messages
         responses = list(filter(lambda line: 'PRIVMSG' in line, responses))
         responses = list(map(lambda line: line.split(' :', 1)[1], responses))
 
@@ -66,6 +68,34 @@ class Messenger:
 
         # Return the responses
         return responses
+
+    def get_nick(self):
+        ''' Return nick '''
+        return self.__nick
+
+    def make_nick(self):
+        ''' Generate a new nick and return '''
+        if self.__nick is None:
+            self.__nick = NICK
+        else:
+            self.__nick = '{}-{}'.format(NICK, uuid.uuid4())
+
+        return self.__nick
+
+    async def invalid_nick(self):
+        ''' Check if the nick is invalid '''
+        try:
+            msg = await asyncio.wait_for(self.__read_line(), timeout=(1/10))
+        except asyncio.TimeoutError:
+            Logger.debug('*** Timed out waiting for invalid NICK ***')
+            return False
+        for seg in msg.split(':')[1:2]:
+            if '433' in seg:
+                Logger.debug('*** Server responded with invalid NICK ***')
+                return True
+            elif '001' in seg:
+                Logger.debug('*** Server responded with valid NICK ***')
+                return False
 
     async def read_line(self):
         ''' Read a line '''
