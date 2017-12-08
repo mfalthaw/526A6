@@ -308,17 +308,22 @@ class Bot():
 
         log('Attacking {}:{}'.format(self.target_host, self.target_port))
 
-        self.__connect_to_target()
-        self.__attack()
+        connected_to_target = self.__connect_to_target()
+        self.__attack(connected_to_target)
         return
+    
+    def __attack(self, connected_to_target):
 
-    def __attack(self):
         '''
         Every bot will connect to the given host/port and
         send a message containing two entries: a counter and
         the nick of the bot. On the next attack the counter
         should be increased by 1.
         '''
+        if not connected_to_target:
+            self.__send_to_controller('Attack on {}:{} fail!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
+            return
+        
         try:
             self.__send_to_target('ATTACK --> {} {}'.format(self.nickname, self.attack_counter))
             # close target socket
@@ -335,12 +340,14 @@ class Bot():
         cmd format --> move <host-name> <port> <channel>
         '''
         if len(cmd) != 4:
+            self.__send_to_controller('move failed. Invalid move command.')
             raise ValueError('Invalid move command.')
         try:
             host = cmd[1]
             port = cmd[2]
             channel = cmd[3]
         except ValueError:
+            self.__send_to_controller('move failed. Failed to split move.')
             raise ValueError('Failed to split move.')
         log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
 
@@ -348,13 +355,16 @@ class Bot():
         if self.__validate_port(port):
             self.move_port = int(port)
         else:
+            self.__send_to_controller('move failed. Invalid port.')
             raise ValueError('Invalid port: {}'.format(port))
 
         self.move_channel = '#' + channel
         self.move_socket = self.__attempt_connection()
         if not self.move_socket:
             log('Can\'t move to {}:{}, channel: {}\nReporting back to {}:{}, channel: {}'.format(self.move_host, self.move_port, self.move_channel, self.irc_host, self.irc_port, self.channel))
+            self.__send_to_controller('failed to move to {}:{}, channel: {}\nReporting back to {}:{}, channel: {}'.format(self.move_host, self.move_port, self.move_channel, self.irc_host, self.irc_port, self.channel))
             return False
+        self.__send_to_controller('move to {}:{}, channel: {} SUCESS!'.format(self.move_host, self.move_port, self.move_channel))
         self.irc_socket.close()
         self.irc_socket = self.move_socket
         self.__listen()
@@ -371,7 +381,6 @@ class Bot():
         if self.irc_socket != False:
             self.__listen()
         return
-
 
 
 def parse_args():
