@@ -45,6 +45,9 @@ class Messenger:
         self.join()
         self.authenticate()
 
+    async def read_list(self):
+        pass
+
     async def read(self, key=None):
         ''' Read responses from bots '''
         fut = self.__read_response()

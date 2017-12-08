@@ -39,9 +39,6 @@ class Handler:
                 [self.messenger.listen_irc(), self.__listen_user()],
                 return_when=asyncio.FIRST_COMPLETED)
 
-            # Reauthenticate
-            self.messenger.authenticate()
-
             # Completed is always listen_user(), cancel pending
             for task in pending:
                 task.cancel()
