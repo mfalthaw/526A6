@@ -148,8 +148,7 @@ class Bot():
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
         cmd = cmd.split()
-        print('------------msg: {}'.format(msg))
-        print('------------cmd: {}'.format(cmd))
+        
         if cmd[0] == 'status':
             try:
                 self.__do_status()
