@@ -7,6 +7,7 @@ from .attack import attack_handle
 from .move import move_handle
 from .shutdown import shutdown_handle
 from .status import status_handle
+from .lmove import lmove_handle
 
 from ..utils import Logger, AsyncInput
 from ..errors import QuitSignal
@@ -20,6 +21,7 @@ class Handler:
         'move': move_handle,
         'shutdown': shutdown_handle,
         'status': status_handle,
+        'lmove': lmove_handle,
     }
 
     def __init__(self, messenger):

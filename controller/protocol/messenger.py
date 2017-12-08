@@ -39,6 +39,12 @@ class Messenger:
         Logger.debug('--> {}'.format(payload))
         return
 
+    def move(self, channel):
+        ''' Move to new channel '''
+        self.__channel = channel
+        self.join()
+        self.authenticate()
+
     async def read(self, key=None):
         ''' Read responses from bots '''
         fut = self.__read_response()
