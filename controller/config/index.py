@@ -1,0 +1,2 @@
+NICK='conbot'
+DEBUG=True
