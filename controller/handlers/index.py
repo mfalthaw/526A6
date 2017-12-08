@@ -8,6 +8,7 @@ from .move import move_handle
 from .shutdown import shutdown_handle
 from .status import status_handle
 from .lmove import lmove_handle
+from .list import list_handle
 
 from ..utils import Logger, AsyncInput
 from ..errors import QuitSignal
@@ -22,6 +23,7 @@ class Handler:
         'shutdown': shutdown_handle,
         'status': status_handle,
         'lmove': lmove_handle,
+        'list': list_handle,
     }
 
     def __init__(self, messenger):
