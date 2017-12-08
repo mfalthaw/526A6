@@ -1,2 +1,2 @@
-NICK='conbot8080'
-DEBUG=False
+NICK='conbot'
+DEBUG=True

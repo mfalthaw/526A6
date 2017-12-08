@@ -5,6 +5,7 @@ import asyncio
 from .utils import parse_args, Logger
 from .protocol import Messenger, handshake
 from .handlers import Handler
+from .errors import QuitSignal
 
 def start():
     ''' Setup event loop and start controller '''
@@ -32,8 +33,11 @@ def start():
 
 async def connect(args):
     ''' Connect to IRC server and start tasks '''
-    reader, writer = await asyncio.open_connection(args.hostname, port=args.port, loop=asyncio.get_event_loop())
-    messenger = Messenger(reader, writer, args.channel)
+    try:
+        messenger = await Messenger(args.channel, args.hostname, args.port)
+    except QuitSignal:
+        Logger.log('Failed to connect to server, timed out')
+
     handler = Handler(messenger)
 
     # Handshake

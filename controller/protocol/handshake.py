@@ -1,18 +1,39 @@
 ''' handshake '''
 
+import uuid
+
 from ..config import NICK
+from ..utils import Logger
 
 async def handshake(messenger, secret):
     ''' Perform handshake with IRC server '''
 
-    # Send NICK
-    await messenger.send('NICK {0}'.format(NICK))
+    num_tries = 10
+    while True:
+        if num_tries == 0:
+            raise Exception('Failed to join server after 10 tries')
+        # Generate NICK
+        nick = '{0}-{1}'.format(NICK, uuid.uuid4())
+
+        # Send NICK
+        messenger.send('NICK {}'.format(nick))
+
+        response = await messenger.read_line()
+
+        for seg in response.split(':')[1:2]:
+            if '433' in seg:
+                Logger.debug('*** Nick taken: {}, retrying... ***'.format(nick))
+                continue
+
+            elif '001' in seg:
+                Logger.log('*** Nick accepted ***')
+                break
 
     # Send USER
-    await messenger.send('USER {0} 0 * :'.format(NICK))
+    messenger.send('USER {0} 8 * :'.format(NICK))
 
     # Send JOIN
-    await messenger.join()
+    messenger.join()
 
     # Authenticate
-    await messenger.send_channel(secret)
+    messenger.send_channel(secret)

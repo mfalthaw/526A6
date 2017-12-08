@@ -4,17 +4,21 @@ import asyncio
 
 from .heartbeat import heartbeat, is_heartbeat
 from ..utils import Logger
+from ..errors import QuitSignal
 
 class Messenger:
     ''' Handle messages between IRC server and client '''
 
-    def __init__(self, reader, writer, channel):
+    def __init__(self, channel, host, port):
+        reader, writer = await self.__connect()
         self.__reader = reader
         self.__writer = writer
         self.__channel = channel
+        self.__host = host
+        self.__port = port
         self.__responses = []
 
-    async def send(self, msg):
+    def send(self, msg):
         ''' send message to IRC server '''
         payload = ('{0}\r\n'.format(msg)).encode('utf_8')
         self.__writer.write(payload)
@@ -47,18 +51,22 @@ class Messenger:
         # Return the responses
         return list(responses)
 
+    async def read_line(self):
+        ''' Read a line '''
+        return await self.__read_line();
+
 
     async def send_channel(self, msg):
         ''' send a private message to channel '''
-        return await self.send('PRIVMSG #{0} :{1}'.format(self.__channel, msg))
+        return self.send('PRIVMSG #{0} :{1}'.format(self.__channel, msg))
 
     async def join(self):
         ''' Join the channel '''
-        return await self.send('JOIN :#{}'.format(self.__channel))
+        return self.send('JOIN :#{}'.format(self.__channel))
 
     async def send_quit(self):
         ''' Send quit message '''
-        return await self.send('QUIT')
+        return self.send('QUIT')
 
     async def listen_irc(self):
         ''' Listen for heartbeat, raise error if not heartbeat message '''
@@ -90,4 +98,25 @@ class Messenger:
 
 
     async def __read_line(self):
-        return (await self.__reader.readline()).decode('utf_8').strip()
+        msg = (await self.__reader.readline()).decode('utf_8').strip()
+        if not msg:
+            # Server disconnected, attempt new connection
+            self.__reconnect()
+        else:
+            return msg
+
+    async def __connect(self):
+        ''' Attempt to make connection to server '''
+        try:
+            return await asyncio.wait_for(asyncio.open_connection(self.__host, self.__port, loop=asyncio.get_event_loop()), timeout=3)
+        except asyncio.TimeoutError:
+            raise QuitSignal()
+
+    async def __reconnect(self):
+        ''' Upon losing connection to server, attempt to reconnect '''
+        Logger.debug('*** Connection lost, reconnecting... ***')
+        try:
+            self.__reader, self.__writer = await self.__connect()
+        except QuitSignal:
+            Logger.log('--- Timed out attempting to reconnect to server ---')
+            raise
