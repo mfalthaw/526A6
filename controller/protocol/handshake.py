@@ -2,7 +2,7 @@
 
 from ..config import NICK
 
-async def handshake(messenger, secret):
+async def handshake(messenger):
     ''' Perform handshake with IRC server '''
 
     num_tries = 10
@@ -34,4 +34,4 @@ async def handshake(messenger, secret):
     messenger.join()
 
     # Authenticate
-    messenger.send_channel(secret)
+    messenger.authenticate()

@@ -34,14 +34,14 @@ def start():
 async def connect(args):
     ''' Connect to IRC server and start tasks '''
     try:
-        messenger = await Messenger.create(args.channel, args.hostname, args.port)
+        messenger = await Messenger.create(args.channel, args.hostname, args.port, args.secret_phrase)
     except QuitSignal:
         Logger.log('Failed to connect to server, timed out')
 
     handler = Handler(messenger)
 
     # Handshake
-    await handshake(messenger, args.secret_phrase)
+    await handshake(messenger)
 
     # Setup the handler (leave room for other misc tasks)
     tasks = [

@@ -12,20 +12,25 @@ class Messenger:
     ''' Handle messages between IRC server and client '''
 
     @classmethod
-    async def create(cls, channel, host, port):
+    async def create(cls, channel, host, port, secret):
         ''' Create instance of messenger and connect '''
-        self = Messenger(channel, host, port)
+        self = Messenger(channel, host, port, secret)
         await self.__connect()
         return self
 
-    def __init__(self, channel, host, port):
+    def __init__(self, channel, host, port, secret):
         self.__nick = None
         self.__reader = None
         self.__writer = None
+        self.__secret = secret
         self.__channel = channel
         self.__host = host
         self.__port = port
         self.__responses = []
+
+    def authenticate(self):
+        ''' Authenticate to bots '''
+        self.send_channel(self.__secret)
 
     def send(self, msg):
         ''' send message to IRC server '''
