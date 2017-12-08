@@ -46,7 +46,19 @@ class Messenger:
         self.authenticate()
 
     async def read_list(self):
-        pass
+        ''' Read the list of channels '''
+        fut = self.__read_response()
+        try:
+            await asyncio.wait_for(fut, timeout=1)
+        except asyncio.TimeoutError:
+            pass
+
+        # Collect the responses
+        responses = self.__responses
+        self.__responses = []
+
+        responses = list(filter(lambda line: '#' in line, responses))
+        return list(map(lambda line: line.split(self.__nick)[1].strip(), responses))
 
     async def read(self, key=None):
         ''' Read responses from bots '''
