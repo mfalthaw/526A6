@@ -4,7 +4,7 @@ from ..utils import Logger
 
 async def status_handle(messenger):
     ''' Request status from the bots '''
-    await messenger.send_channel('status')
+    messenger.send_channel('status')
 
     # Collect responses & perform analytics
     responses = await messenger.read()

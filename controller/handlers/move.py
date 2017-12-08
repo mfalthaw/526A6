@@ -20,7 +20,7 @@ async def move_handle(messenger, line):
     Logger.log('issuing move...')
 
     # Send message to IRC server
-    await messenger.send_channel('move {0} {1} {2}'.format(args.host_name, args.port, args.channel))
+    messenger.send_channel('move {0} {1} {2}'.format(args.host_name, args.port, args.channel))
 
     # Read responses & perform analytics
     responses = await messenger.read('move')

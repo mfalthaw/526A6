@@ -7,7 +7,7 @@ async def shutdown_handle(messenger, _):
 
     Logger.log('issuing shutdown...')
 
-    await messenger.send_channel('shutdown')
+    messenger.send_channel('shutdown')
 
     # Collect responses and perform analytics
     responses = await messenger.read('shutting')

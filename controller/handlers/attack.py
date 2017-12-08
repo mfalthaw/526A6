@@ -17,7 +17,7 @@ async def attack_handle(messenger, line):
     Logger.log('Issuing attack...')
 
     # Send the messaage to the server
-    await messenger.send_channel('attack {0} {1}'.format(args.host_name, args.port))
+    messenger.send_channel('attack {0} {1}'.format(args.host_name, args.port))
 
     # Collect responses & perform analytics
     responses = await messenger.read('attack')

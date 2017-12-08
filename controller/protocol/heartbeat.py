@@ -9,7 +9,7 @@ async def heartbeat(messenger, line):
     _, message = line.split('PING', 1)
 
     # Send the PONG
-    await messenger.send('PONG{0}'.format(message))
+    messenger.send('PONG{0}'.format(message))
 
 def is_heartbeat(line):
     ''' determine if line is a heartbeat '''

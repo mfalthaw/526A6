@@ -9,10 +9,16 @@ from ..errors import QuitSignal
 class Messenger:
     ''' Handle messages between IRC server and client '''
 
+    @classmethod
+    async def create(cls, channel, host, port):
+        ''' Create instance of messenger and connect '''
+        self = Messenger(channel, host, port)
+        await self.__connect()
+        return self
+
     def __init__(self, channel, host, port):
-        reader, writer = await self.__connect()
-        self.__reader = reader
-        self.__writer = writer
+        self.__reader = None
+        self.__writer = None
         self.__channel = channel
         self.__host = host
         self.__port = port
@@ -53,14 +59,15 @@ class Messenger:
 
     async def read_line(self):
         ''' Read a line '''
-        return await self.__read_line();
+        msg = await self.__read_line()
+        Logger.debug('<-- {}'.format(msg))
+        return msg
 
-
-    async def send_channel(self, msg):
+    def send_channel(self, msg):
         ''' send a private message to channel '''
         return self.send('PRIVMSG #{0} :{1}'.format(self.__channel, msg))
 
-    async def join(self):
+    def join(self):
         ''' Join the channel '''
         return self.send('JOIN :#{}'.format(self.__channel))
 
@@ -77,7 +84,6 @@ class Messenger:
             else:
                 # Log that the message was not received, else print msg to user
                 Logger.debug('<-- {}'.format(msg))
-
 
     def close(self):
         ''' Close the messenger '''
@@ -96,19 +102,20 @@ class Messenger:
         Logger.debug('<-- {}'.format(msg))
         await heartbeat(self, msg)
 
-
     async def __read_line(self):
-        msg = (await self.__reader.readline()).decode('utf_8').strip()
+
+        msg = await self.__reader.readline()
+
         if not msg:
             # Server disconnected, attempt new connection
             self.__reconnect()
         else:
-            return msg
+            return msg.decode('utf_8').strip()
 
     async def __connect(self):
         ''' Attempt to make connection to server '''
         try:
-            return await asyncio.wait_for(asyncio.open_connection(self.__host, self.__port, loop=asyncio.get_event_loop()), timeout=3)
+            self.__reader, self.__writer = await asyncio.wait_for(asyncio.open_connection(self.__host, self.__port, loop=asyncio.get_event_loop()), timeout=3)
         except asyncio.TimeoutError:
             raise QuitSignal()
 
