@@ -22,3 +22,8 @@ class Logger:
     def logline():
         ''' Log a line to show results '''
         Logger.log('----------------------------------------------------')
+
+    @staticmethod
+    def debugline():
+        ''' Debug a line to show results '''
+        Logger.debug('----------------------------------------------------')

