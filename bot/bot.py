@@ -5,6 +5,7 @@ import argparse
 import sys
 import socket
 import random
+import uuid
 
 from errors import ShutdownError
 from errors import MoveError
@@ -21,7 +22,7 @@ class Bot():
         self.channel = '#' + channel
         self.secret_phrase = secret_phrase
         self.irc_socket = None
-        self.nickname = 'spyBot'# + str(random.randint(1, 20))
+        self.nickname = 'spyBot' + str(uuid.uuid4())
         self.controller = None
         self.controller_nickname = None
 
@@ -147,7 +148,8 @@ class Bot():
     def __handle_command(self, msg):
         _, cmd = msg.split(' :')
         cmd = cmd.split()
-
+        print('------------msg: {}'.format(msg))
+        print('------------cmd: {}'.format(cmd))
         if cmd[0] == 'status':
             try:
                 self.__do_status()
@@ -235,11 +237,13 @@ class Bot():
                 self.__connect_to_irc()
             except KeyboardInterrupt:
                 log('\nKeyboard interrupt, exiting..')
+                self.irc_socket.close()
+                sys.exit()
                 return
 
             if not self.__validate_msg(msg):
                 log('Warning: non-cotroller msg')
-                log(msg)
+                # log(msg)
                 continue
 
             if self.controller == None:
