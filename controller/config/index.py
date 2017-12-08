@@ -1,2 +1,2 @@
-NICK='conbot'
-DEBUG=True
+NICK='rektbot'
+DEBUG=False
