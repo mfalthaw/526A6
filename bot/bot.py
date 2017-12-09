@@ -240,6 +240,7 @@ class Bot():
                 self.irc_socket.close()
                 sys.exit()
                 return
+
             if not msg:
                 log('Lost connection with server, reconnectiong...')
                 # reconnect
@@ -267,6 +268,7 @@ class Bot():
             except ShutdownError:
                 self.irc_socket.close()
                 log('Disconnected from server.')
+                sys.exit()
                 return
             except ValueError as e:
                 log('Handle Command ValueError: {}'.format(e))
